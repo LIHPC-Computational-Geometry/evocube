@@ -6,58 +6,17 @@
 #include <igl/remove_unreferenced.h>
 #include <iostream>
 
+#include "bnd_to_tet.h"
 #include "mesh_io.h"
 
 // see https://github.com/libigl/libigl/blob/main/tutorial/605_Tetgen/main.cpp
 
 
-// TODO move
-#include <fstream>
-class BndToTetConverter {
-public:
-    BndToTetConverter(std::string input_file){
-        int n_values;
-        int line;
-        std::ifstream file(input_file);
-        
-        if (file.is_open())
-        {
-            file >> n_values;
-
-            table_.resize(n_values);
-            for (int i=0; i < n_values; i++){
-                file >> table_(i);
-            }
-            file.close();
-        }
-
-        else std::cout << "Unable to open file";
-
-        std::cout << table_ << std::endl;
-    }
-
-    BndToTetConverter(const Eigen::VectorXi table) : table_(table) {}
-
-    void writeTo(std::string write_path){
-        std::ofstream file(write_path);
-        if (file.is_open()){
-            file << table_.rows();
-            file << "\n";
-            for (int i=0; i<table_.rows(); i++){
-                file << table_(i);
-                file << "\n";
-            }
-            file.close();
-        }
-        else std::cout << "Unable to open file";
-    }
-private:
-    Eigen::VectorXi table_;
-};
 
 int main(){
 
     std::string input_path = "../data/S1/input_boundary.obj";
+    std::string output_tris_to_tets = "../data/S1/tris_to_tets.txt";
     std::string output_path = "../data/S1/tetra.mesh";
     std::string output_bnd = "../data/S1/boundary.obj";
 
@@ -122,8 +81,14 @@ int main(){
     Eigen::MatrixXi Fb;
     igl::boundary_facets(TT, Fb, Fb_to_TT, K);
 
-    BndToTetConverter conv(Fb_to_TT);
-    conv.writeTo("../from_tet_to_tris_with_extra_vs.txt");
+    Eigen::VectorXi corres(Fb_to_TT.rows());
+    for (int i=0; i<corres.rows(); i++){
+        corres(i) = 4 * Fb_to_TT(i) + K(i);
+    }
+
+    //BndToTetConverter conv(Fb_to_TT);
+    BndToTetConverter conv(corres);
+    conv.writeTo(output_tris_to_tets);
 
     // Remove unreferenced vertices from V, updating F accordingly
     //
@@ -140,7 +105,6 @@ int main(){
     Eigen::MatrixXi NF;
     Eigen::VectorXi I;
     igl::remove_unreferenced(TV, Fb, NV, NF, I);
-    need to code your own remove unref
 
     igl::writeOBJ(output_bnd, NV, NF);
 
