@@ -3,7 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip> 
-#include "nlohmann/json.hpp"
+#include <nlohmann/json.hpp>
 
 void coloredPrint(std::string text, std::string color){
     std::cout << "\033[1;";

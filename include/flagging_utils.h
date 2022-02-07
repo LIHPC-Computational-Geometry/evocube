@@ -87,14 +87,15 @@ void saveFlagging(std::string file_name, const Eigen::VectorXi& assignment){
     out_assig.close();
 }
 
-#include "bnd_to_tet.h"
+#include "tet_boundary.h"
 
-void saveFlaggingOnTets(std::string file_name, std::string tris_to_tets_path, int n_tets, const Eigen::VectorXi& assignment);
-void saveFlaggingOnTets(std::string file_name, std::string tris_to_tets_path, int n_tets, const Eigen::VectorXi& assignment){
+void saveFlaggingOnTets(std::string file_name, std::string tris_to_tets_path, const Eigen::VectorXi& assignment);
+void saveFlaggingOnTets(std::string file_name, std::string tris_to_tets_path, const Eigen::VectorXi& assignment){
+
+    BndToTetConverter conv(tris_to_tets_path);
+    int n_tets = conv.n_tets_;
 
     Eigen::VectorXi assigment_tets = Eigen::VectorXi::Constant(4 * n_tets, -1);
-    BndToTetConverter conv(tris_to_tets_path);
-
     if (conv.table_.rows() != assignment.rows()){
         std::cout << "ERROR sizes don't match in saveFlaggingOnTets" << std::endl;
         std::cout << conv.table_.rows() << " vs " << assignment.rows() << std::endl;

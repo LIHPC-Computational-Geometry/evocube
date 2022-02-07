@@ -2,6 +2,8 @@
 #include <fstream>
 #include <vector>
 #include <Eigen/Core>
+#include <igl/readOBJ.h>
+#include <igl/copyleft/tetgen/tetrahedralize.h>
 
 // .mesh documentation : https://www.ljll.math.upmc.fr/frey/logiciels/Docmedit.dir/index.html
 // (spelling mistake in HexaHedra)
@@ -99,4 +101,60 @@ void readDotMeshTet(std::string input_tets, Eigen::MatrixXd &V, Eigen::MatrixXi 
         }
     }
     input_file.close();
+}
+
+void triObjtoMeshTet(std::string input_path, std::string output_path, 
+                     Eigen::MatrixXd& TV, Eigen::MatrixXi& TT){
+    Eigen::MatrixXd V;
+    Eigen::MatrixXi F, TF;
+    igl::readOBJ(input_path, V, F);
+
+    V.rowwise() -= V.colwise().minCoeff();
+    V /= V.maxCoeff() / 10.0;
+    std::cout << "min: " << std::endl;
+    std::cout << V.colwise().minCoeff() << std::endl;
+    std::cout << "max: " << std::endl;
+    std::cout << V.colwise().maxCoeff() << std::endl;
+
+
+    // Mesh the interior of a surface mesh (V,F) using tetgen
+    //
+    // Inputs:
+    //   V  #V by 3 vertex position list
+    //   F  #F list of polygon face indices into V (0-indexed)
+    //   switches  string of tetgen options (See tetgen documentation) e.g.
+    //     "pq1.414a0.01" tries to mesh the interior of a given surface with
+    //       quality and area constraints
+    //     "" will mesh the convex hull constrained to pass through V (ignores F)
+    // Outputs:
+    //   TV  #V by 3 vertex position list
+    //   TT  #T by 4 list of tet face indices
+    //   TF  #F by 3 list of triangle face indices
+    // Returns status:
+    //   0 success
+    //   1 tetgen threw exception
+    //   2 tetgen did not crash but could not create any tets (probably there are
+    //     holes, duplicate faces etc.)
+    //   -1 other error
+
+    // tetgen manual https://wias-berlin.de/software/tetgen/1.5/doc/manual/manual.pdf
+    // -p Tetrahedralizes a piecewise linear complex (PLC)
+    // -q Refines mesh, see 4.2.3
+    // -a Applies a maximum tetrahedron volume constraint.
+    // -Y keep boundary mesh from input
+
+    int mesh_refinement = 100;
+    double max_tet_volume = 1.0;
+    std::string arguments = "pqma" + std::to_string(max_tet_volume);
+
+    //int success = igl::copyleft::tetgen::tetrahedralize(V, F, "pYq1000000a10000.0", TV, TT, TF);
+    int success = igl::copyleft::tetgen::tetrahedralize(V, F, "pqa", TV, TT, TF);
+    writeDotMeshTet(output_path, TV, TT);
+    if (TV.rows() > 70000) std::cout << "Warning! Generated mesh is really large." << std::endl;
+}
+
+void triObjtoMeshTet(std::string input_path, std::string output_path){
+    Eigen::MatrixXd TV;
+    Eigen::MatrixXi TT;
+    triObjtoMeshTet(input_path, output_path, TV, TT);
 }

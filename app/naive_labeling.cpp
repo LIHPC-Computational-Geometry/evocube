@@ -2,14 +2,14 @@
 #include <igl/readOBJ.h>
 #include <igl/writeOBJ.h>
 #include <igl/per_face_normals.h>
-#include "bnd_to_tet.h"
+#include "tet_boundary.h"
 #include "flagging_utils.h"
 
 int main(int argc, char *argv[]){
 
     Eigen::MatrixXd V;
     Eigen::MatrixXi F;
-    igl::readOBJ("../data/S1/boundary.obj", V, F);
+    igl::readOBJ("../boundary.obj", V, F);
     
     Eigen::MatrixXd N;
     igl::per_face_normals(V, F, N);
@@ -42,10 +42,9 @@ int main(int argc, char *argv[]){
 
     //Eigen::MatrixXd colors = colorsFromFlagging(labeling);
 
-    saveFlagging("../data/S1/labeling.txt", labeling);
-    int n_tets = 113683;
+    saveFlagging("../labeling.txt", labeling);
     coloredPrint("TODO n_tets hardcoded", "red");
-    saveFlaggingOnTets("../data/S1/labeling_on_tets.txt", "../data/S1/tris_to_tets.txt", n_tets, labeling);
+    saveFlaggingOnTets("../labeling_on_tets.txt", "../tris_to_tets.txt", labeling);
 
     //BndToTetConverter conv("../from_tris_to_tets.txt");    
 }

@@ -66,10 +66,10 @@ int main(int argc, char *argv[]){
   using namespace Eigen;
   using namespace std;
 
-  std::string input_tets = "../data/S1/tetra.mesh";
+  std::string input_tets = "../tetra.mesh";
   readDotMeshTet(input_tets, TV, TT);
 
-  Eigen::VectorXi tet_labeling = openFlagging("../data/S1/labeling_on_tets.txt", 4 * TT.rows());
+  Eigen::VectorXi tet_labeling = openFlagging("../labeling_on_tets.txt", 4 * TT.rows());
   tet_colors = colorsFromFlagging(tet_labeling);
 
   // Compute barycenters
