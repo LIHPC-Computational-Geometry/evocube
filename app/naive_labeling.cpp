@@ -2,19 +2,28 @@
 #include <igl/readOBJ.h>
 #include <igl/writeOBJ.h>
 #include <igl/per_face_normals.h>
+#include <igl/triangle_triangle_adjacency.h>
+
 #include "tet_boundary.h"
 #include "flagging_utils.h"
+#include "graphcut_labeling.h"
 
 int main(int argc, char *argv[]){
 
+    std::string folder = "../data/mambo/base1-Part_1.hh.sat/";
+    folder = "../data/S1/";
+
     Eigen::MatrixXd V;
     Eigen::MatrixXi F;
-    igl::readOBJ("../boundary.obj", V, F);
+    igl::readOBJ(folder + "boundary.obj", V, F);
     
     Eigen::MatrixXd N;
     igl::per_face_normals(V, F, N);
 
-    Eigen::VectorXi labeling(F.rows());
+    Eigen::MatrixXi TT;
+    igl::triangle_triangle_adjacency(F, TT);
+
+    /*Eigen::VectorXi labeling(F.rows());
     for (int f_id = 0; f_id < F.rows(); f_id ++){
         double best_match = -1;
         double best_label = -1;
@@ -38,13 +47,13 @@ int main(int argc, char *argv[]){
         }
 
         labeling(f_id) = best_label;
-    }
+    }*/
+
+    Eigen::VectorXi labeling = graphcutFlagging(V, F, N, TT, 3, 1);
 
     //Eigen::MatrixXd colors = colorsFromFlagging(labeling);
 
-    saveFlagging("../labeling.txt", labeling);
-    coloredPrint("TODO n_tets hardcoded", "red");
-    saveFlaggingOnTets("../labeling_on_tets.txt", "../tris_to_tets.txt", labeling);
+    saveFlagging(folder + "labeling.txt", labeling);
+    saveFlaggingOnTets(folder + "labeling_on_tets.txt", folder + "tris_to_tets.txt", labeling);
 
-    //BndToTetConverter conv("../from_tris_to_tets.txt");    
 }

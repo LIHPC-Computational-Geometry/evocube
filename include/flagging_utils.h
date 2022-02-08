@@ -1,7 +1,19 @@
+#pragma once
+
 #include <Eigen/Core>
 #include <iostream>
 
 #include "logging.h"
+
+Eigen::MatrixXd axesMatrix(){
+    Eigen::MatrixXd axes = Eigen::MatrixXd::Zero(6,3);
+    for (int axis=0; axis<3; axis++){
+        for (int dir=0; dir<2; dir++){
+            axes(2*axis + dir, axis) = 1 - 2*dir;
+        }
+    }
+    return axes;
+}
 
 Eigen::VectorXi openFlagging(std::string file_name, int expected_size);
 
