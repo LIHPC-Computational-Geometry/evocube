@@ -9,7 +9,7 @@
 
 Eigen::VectorXi graphcutFlagging(const Eigen::MatrixXd& V, const Eigen::MatrixXi& F,
         const Eigen::MatrixXd& N, const Eigen::MatrixXi& TT,
-        const Eigen::VectorXi& locked_flags, const Eigen::VectorXi& forbidden_flags, int& precompute_time,
+        const Eigen::VectorXi& locked_flags, const Eigen::VectorXi& forbidden_flags,
         int compact_coeff, int fidelity_coeff){
 
     // See example.cpp in gco-v3.0
@@ -109,7 +109,7 @@ Eigen::VectorXi graphcutFlagging(const Eigen::MatrixXd& V, const Eigen::MatrixXi
 
 
         std::chrono::steady_clock::time_point after_precomp = std::chrono::steady_clock::now();   
-        precompute_time = std::chrono::duration_cast<std::chrono::milliseconds>(after_precomp - before_precomp).count();
+        //precompute_time = std::chrono::duration_cast<std::chrono::milliseconds>(after_precomp - before_precomp).count();
 
 		printf("\nBefore optimization energy is %d",gc->compute_energy());
 		gc->expansion(2);// run expansion for 2 iterations. For swap use gc->swap(num_iterations);
@@ -133,25 +133,26 @@ Eigen::VectorXi graphcutFlagging(const Eigen::MatrixXd& V, const Eigen::MatrixXi
 Eigen::VectorXi graphcutFlagging(const Eigen::MatrixXd& V, const Eigen::MatrixXi& F,
                                  const Eigen::MatrixXd& N, const Eigen::MatrixXi& TT,
                                  int compact_coeff, int fidelity_coeff){
-    int precompute_time;
+    //int precompute_time;
     Eigen::VectorXi locked_flags, forbidden_flags;
 
     return graphcutFlagging(V, F, N, TT, locked_flags, forbidden_flags, 
-                            precompute_time, compact_coeff,  fidelity_coeff);
+                            compact_coeff,  fidelity_coeff);
 }
 
-/*
-std::vector<int> graphcutTurningPoints(const flagging::Boundary& bnd, const Eigen::MatrixXd& V){
-    Eigen::VectorXi result(bnd.v_ids.size() - 1); //first vertex can't be a turning point
-    int num_elem = bnd.v_ids.size() - 1;
+std::vector<int> graphcutTurningPoints(const std::vector<int>& bnd, const Eigen::MatrixXd& V,
+                                       const Eigen::RowVector3d& desired_dir){
+    Eigen::VectorXi result(bnd.size() - 1); //first vertex can't be a turning point
+    int num_elem = bnd.size() - 1;
     int num_labels = 2;
 
 	// unary costs
 	int *data = new int[num_elem*num_labels];
-    Eigen::RowVector3d dir = bnd.direction.normalized();
+    Eigen::RowVector3d dir = desired_dir;
+
 	for (int i = 0; i < num_elem; i++ ){
-        Eigen::RowVector3d edge = (V.row(bnd.v_ids[i+1]) - V.row(bnd.v_ids[i])).normalized();
-        for (int l = 0; l < num_labels; l++ ){
+        Eigen::RowVector3d edge = (V.row(bnd[i+1]) - V.row(bnd[i])).normalized();
+        for (int l = 0; l < num_labels; l++){
             double dot = (dir.dot(edge.row(l)) - 1.0)/0.9;
             double cost = 1 - std::exp(-(1./2.)*std::pow(dot,2));
             data[i*num_labels+l] = (int) (100*cost);
@@ -173,15 +174,14 @@ std::vector<int> graphcutTurningPoints(const flagging::Boundary& bnd, const Eige
 		gc->setDataCost(data);
 		gc->setSmoothCost(smooth);
 		
-        for (int i=0; i<bnd.v_ids.size() - 2; i++){
-            Eigen::RowVector3d edge1 = (V.row(bnd.v_ids[i+1]) - V.row(bnd.v_ids[i])).normalized();
-            Eigen::RowVector3d edge2 = (V.row(bnd.v_ids[i+2]) - V.row(bnd.v_ids[i+1])).normalized();
+        for (int i=0; i<bnd.size() - 2; i++){
+            Eigen::RowVector3d edge1 = (V.row(bnd[i+1]) - V.row(bnd[i])).normalized();
+            Eigen::RowVector3d edge2 = (V.row(bnd[i+2]) - V.row(bnd[i+1])).normalized();
             edge1 = edge1.normalized();
             edge2 = edge2.normalized();
             double dot = (edge1.dot(edge2)-1)/1.2;
-            double cost = std::exp(-(1./2.)*std::pow(dot,2));
+            double cost = std::exp(-(1./2.0)*std::pow(dot,2));
             gc->setNeighbors(i, i+1, (int) (100*cost));
-            
         }
 
 		gc->expansion(2);// run expansion for 2 iterations. For swap use gc->swap(num_iterations);
@@ -206,10 +206,10 @@ std::vector<int> graphcutTurningPoints(const flagging::Boundary& bnd, const Eige
     }
 
     // handle loops
-    int last_id = bnd.v_ids.size() - 1;
-    if (bnd.v_ids[0] == bnd.v_ids[last_id] && result(0) != result(last_id - 1)){
+    int last_id = bnd.size() - 1;
+    if (bnd[0] == bnd[last_id] && result(0) != result(last_id - 1)){
         turning_points.push_back(0);
     }
 
     return turning_points;    
-}*/
+}

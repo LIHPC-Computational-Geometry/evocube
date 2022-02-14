@@ -33,13 +33,9 @@ public:
     BndToTetConverter(const Eigen::VectorXi table, int n_tets) : table_(table) {
         n_tris_ = table_.rows();
         n_tets_ = n_tets;
-        
-        std::cout << "ok1 " << n_tets << std::endl;
     }
 
     void writeTo(std::string write_path){
-        std::cout << "ok2 " << n_tris_ << std::endl;
-        std::cout << "ok3 " << n_tets_ << std::endl;
         std::ofstream file(write_path);
         if (file.is_open()){
             file << n_tris_;

@@ -8,27 +8,50 @@ add_definitions(-DIGL_VIEWER_VIEWER_QUIET)
 set(LIBIGL_USE_STATIC_LIBRARY ON)
 add_subdirectory(lib/libigl)
 add_subdirectory(lib/gco)
+add_subdirectory(lib/OpenNL_psm)
 
 find_package(OpenMP REQUIRED)
 
 include_directories(include)
 include_directories(lib/json/include)
 include_directories(lib/gco/include)
+include_directories(lib/OpenNL_psm)
+
+SET(IGL_VIEWER_LIBS
+    igl::core
+    igl::opengl_glfw
+    igl::opengl_glfw_imgui
+)
+
+SET(EVOCUBE_LIBS
+    gco
+    OpenMP::OpenMP_CXX
+    OpenNL_psm
+)
 
 add_executable(igl_core app/igl_core.cpp)
-target_link_libraries(igl_core igl::opengl_glfw igl::core igl::opengl_glfw_imgui)
+target_link_libraries(igl_core ${IGL_VIEWER_LIBS})
 
 add_executable(viz_tet app/viz_tet.cpp ${SRCFILES})
-target_link_libraries(viz_tet igl::opengl_glfw igl::core igl::opengl_glfw_imgui igl::tetgen)
+target_link_libraries(viz_tet ${IGL_VIEWER_LIBS} igl::tetgen)
 
 add_executable(jacob_test app/jacob_test.cpp)
-target_link_libraries(jacob_test igl::opengl_glfw igl::core igl::opengl_glfw_imgui OpenMP::OpenMP_CXX)
+target_link_libraries(jacob_test ${IGL_VIEWER_LIBS} OpenMP::OpenMP_CXX)
 
 add_executable(flagging_viewer app/flagging_viewer.cpp ${SRCFILES})
-target_link_libraries(flagging_viewer igl::opengl_glfw igl::core igl::opengl_glfw_imgui OpenMP::OpenMP_CXX)
+target_link_libraries(flagging_viewer ${IGL_VIEWER_LIBS} OpenMP::OpenMP_CXX)
 
 add_executable(naive_labeling app/naive_labeling.cpp ${SRCFILES})
 target_link_libraries(naive_labeling igl::core OpenMP::OpenMP_CXX gco)
+
+add_executable(ev_test app/ev_test.cpp ${SRCFILES})
+target_link_libraries(ev_test ${IGL_VIEWER_LIBS} OpenMP::OpenMP_CXX OpenNL_psm)
+
+add_executable(edit_labeling app/edit_labeling.cpp ${SRCFILES})
+target_link_libraries(edit_labeling ${IGL_VIEWER_LIBS})
+
+add_executable(test_greedy app/test_greedy.cpp ${SRCFILES})
+target_link_libraries(test_greedy ${IGL_VIEWER_LIBS} ${EVOCUBE_LIBS})
 
 add_executable(openmp_test app/openmp_test.cpp)
 target_link_libraries(openmp_test OpenMP::OpenMP_CXX)

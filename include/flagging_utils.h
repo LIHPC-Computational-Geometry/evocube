@@ -2,6 +2,7 @@
 
 #include <Eigen/Core>
 #include <iostream>
+#include <fstream>
 
 #include "logging.h"
 

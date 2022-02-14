@@ -13,8 +13,8 @@
 int main(){
 
     // INPUT FOLDER
-    std::string input_type = "stl";
-    std::string input_path = "../data/2019-OctreeMeshing/input/cad/";//"../../mambo/Simple/";
+    std::string input_type = "obj";
+    std::string input_path = "../data/2019-OctreeMeshing/input/smooth/";//"../../mambo/Simple/";
     //input_type = "step";
     //input_path = "../../mambo/Simple/";
 
@@ -105,7 +105,7 @@ int main(){
         
         computeTetMeshBoundary(TT, TV, new_folder + output_tris_to_tets, new_folder + output_bnd);
 
-        break;
+        //break;
     }
         
 }

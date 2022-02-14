@@ -3,13 +3,21 @@
 #include <igl/opengl/glfw/imgui/ImGuiMenu.h>
 #include <igl/readOBJ.h>
 
+#include "quick_label_ev.h"
+#include "flagging_utils.h"
+
 int main(int argc, char *argv[]){
 
     Eigen::MatrixXd V;
     Eigen::MatrixXi F;
+    Eigen::VectorXi labeling;
 
-    igl::readOBJ("../data/cross/cross_flat.obj", V, F);
+    igl::readOBJ("../data/S1/boundary.obj", V, F);
+    labeling = openFlagging("../data/S1/edited_labeling.txt", F.rows());
     
+    QuickLabelEv qle(V, F);
+	qle.evaluate(labeling);
+
 
     // --- VISUALIZATION ---
 
