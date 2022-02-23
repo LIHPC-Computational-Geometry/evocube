@@ -1,0 +1,31 @@
+// Code from Francois
+// TODO compute SJ stats from a .mesh hex
+
+
+constexpr int HEX_CORNER_SPLITTING[8][4] = {
+	{0,1,2,4},
+	{1,3,0,5},
+	{2,0,3,6},
+	{3,2,1,7},
+	{4,6,5,0},
+	{5,4,7,1},
+	{6,7,4,2},
+	{7,5,6,3},
+};
+double compute_scaled_jacobian(const UM::Hexahedra& hex, UM::CellAttribute<double>& cell_min_sj) {
+	double glob_min = 1;
+	for (int h : range(hex.ncells())) {
+		double min_sj = 1;
+		for (int hv : range(8)) {
+			std::array<vec3, 4> v;
+			for (int i : range(4)) v[i] = hex.points[hex.vert(h, HEX_CORNER_SPLITTING[hv][i])];
+			vec3 n1 = v[1] - v[0]; n1.normalize();
+			vec3 n2 = v[2] - v[0]; n2.normalize();
+			vec3 n3 = v[3] - v[0]; n3.normalize();
+			min_sj = std::min(min_sj, n3 * cross(n1, n2));
+		}
+		cell_min_sj[h] = min_sj;
+		glob_min = std::min(glob_min, min_sj);
+	}
+	return glob_min;
+}

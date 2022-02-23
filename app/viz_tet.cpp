@@ -28,9 +28,7 @@ bool key_down(igl::opengl::glfw::Viewer& viewer, unsigned char key, int modifier
         v /= v.col(0).maxCoeff();
 
         vector<int> s;
-
         for (unsigned i=0; i<v.size();++i)
-        if (v(i) < t || true)
             s.push_back(i);
 
         MatrixXd V_temp(s.size()*4,3);
@@ -51,10 +49,10 @@ bool key_down(igl::opengl::glfw::Viewer& viewer, unsigned char key, int modifier
         viewer.data().clear();
         viewer.data().set_mesh(V_temp,F_temp);
         viewer.data().set_face_based(true);
-        viewer.data().set_colors(tet_colors);
+        //viewer.data().set_colors(tet_colors);
 
         std::cout << "F_temp.rows(): " << F_temp.rows() << std::endl;
-        std::cout << "tet_colors.rows(): " << tet_colors.rows() << std::endl;
+        //std::cout << "tet_colors.rows(): " << tet_colors.rows() << std::endl;
     }
 
     return false;
@@ -67,10 +65,12 @@ int main(int argc, char *argv[]){
     std::string folder = "../data/mambo/base1-Part_1.hh.sat/";
     folder = "../data/S1/";
     std::string input_tets = folder + "tetra.mesh";
+
+    if (argc > 1) input_tets = argv[1];
     readDotMeshTet(input_tets, TV, TT);
 
-    Eigen::VectorXi tet_labeling = openFlagging(folder + "labeling_on_tets.txt", 4 * TT.rows());
-    tet_colors = colorsFromFlagging(tet_labeling);
+    /*Eigen::VectorXi tet_labeling = openFlagging(folder + "labeling_on_tets.txt", 4 * TT.rows());
+    tet_colors = colorsFromFlagging(tet_labeling);*/
 
     // Compute barycenters
     igl::barycenter(TV,TT,B);

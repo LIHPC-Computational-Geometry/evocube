@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.1)
 project(evocube)
 set(CMAKE_CXX_STANDARD 17)
-file(GLOB SRCFILES src/*.cpp )
+file(GLOB SRCFILES src/*.cpp)
 
 add_definitions(-DIGL_VIEWER_VIEWER_QUIET)
 set(LIBIGL_USE_STATIC_LIBRARY ON)
@@ -32,7 +32,7 @@ SET(EVOCUBE_LIBS
 add_executable(igl_core app/igl_core.cpp)
 target_link_libraries(igl_core ${IGL_VIEWER_LIBS})
 
-add_executable(viz_tet app/viz_tet.cpp ${SRCFILES})
+add_executable(viz_tet app/viz_tet.cpp src/flagging_utils.cpp src/tet_boundary.cpp src/logging.cpp)
 target_link_libraries(viz_tet ${IGL_VIEWER_LIBS} igl::tetgen)
 
 add_executable(jacob_test app/jacob_test.cpp)
@@ -57,4 +57,4 @@ add_executable(openmp_test app/openmp_test.cpp)
 target_link_libraries(openmp_test OpenMP::OpenMP_CXX)
 
 add_executable(init_from_folder app/init_from_folder.cpp ${SRCFILES})
-target_link_libraries(init_from_folder igl::core igl::tetgen)
+target_link_libraries(init_from_folder igl::core igl::tetgen ${EVOCUBE_LIBS})

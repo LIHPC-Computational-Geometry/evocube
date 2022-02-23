@@ -15,8 +15,8 @@ int main(){
     // INPUT FOLDER
     std::string input_type = "obj";
     std::string input_path = "../data/2019-OctreeMeshing/input/smooth/";//"../../mambo/Simple/";
-    //input_type = "step";
-    //input_path = "../../mambo/Simple/";
+    input_type = "step";
+    input_path = "../../mambo/Basic/";
 
     // OUTPUT FOLDER
     std::string output_path = "../data/mambo/";
@@ -52,7 +52,7 @@ int main(){
         if (input_type == "step"){
             std::string input_step = new_folder + step_input;
             std::filesystem::copy(entry.path(), input_step);
-            std::string command = "/usr/bin/python3 ../scripts/step_to_stl.py " + input_step + " " + output_mesh;
+            std::string command = "/usr/bin/python3 ../scripts/step_to_tet.py " + input_step + " " + output_mesh;
             int result = system(command.c_str());
             if (result) {
                 coloredPrint("FAILURE on " + input_step, "red");
