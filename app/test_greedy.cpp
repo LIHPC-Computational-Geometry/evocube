@@ -15,28 +15,27 @@
 #include "evaluator.h"
 #include "labeling_individual.h"
 
+
 int main(int argc, char *argv[]){
 
     std::string input_tris = "../data/bunny/boundary.obj";
     if (argc > 1) input_tris = argv[1];
 
-    //std::srand(std::time(nullptr));
+    std::srand(std::time(nullptr));
 
     Eigen::MatrixXd V;
     Eigen::MatrixXi F;
     //igl::readOBJ("../data/Basic/B23/boundary.obj", V, F);
     igl::readOBJ(input_tris, V, F);
 
-    const Evocube evo(V, F);
-    const QuickLabelEv qle(V, F);
-    const Evaluator evaluator(std::make_shared<Evocube>(evo),
-                              std::make_shared<QuickLabelEv>(qle)); 
+    std::shared_ptr<Evocube> evo = std::make_shared<Evocube>(Evocube(V, F));
+    std::shared_ptr<const QuickLabelEv> qle = std::make_shared<const QuickLabelEv>(QuickLabelEv(V, F));
+    const Evaluator evaluator(evo, qle); 
 
-    
     int compact_coeff = 1;
     int fidelity_coeff = 3;
-    Eigen::VectorXi labeling_init = graphcutFlagging(V, F, evo.N_, evo.TT_, compact_coeff, fidelity_coeff);
-    LabelingIndividual ancestor(std::make_shared<Evocube>(evo), std::make_shared<QuickLabelEv>(qle), labeling_init);
+    Eigen::VectorXi labeling_init = graphcutFlagging(V, F, evo->N_, evo->TT_, compact_coeff, fidelity_coeff);
+    LabelingIndividual ancestor(evo, qle, labeling_init);
 
     std::cout << "Fix init... " << std::endl;
     ancestor.updateChartsAndTPs();
@@ -49,18 +48,19 @@ int main(int argc, char *argv[]){
 
     ancestor.repairUnspikeLabeling();
     ancestor.updateChartsAndTPs(true);
-
+    ancestor.updateTimestamps();
+    
     int mut_count = 1;
     
     double current_score = evaluator.evaluate(ancestor);
-    Eigen::MatrixXd def_V = qle.computeDeformedV(ancestor.getLabeling());
+    Eigen::MatrixXd def_V;// = qle->computeDeformedV(ancestor.getLabeling());
 
     std::shared_ptr<LabelingIndividual> best_indiv = std::make_shared<LabelingIndividual>(ancestor); 
 
     auto pickMutation = [](double progress_percentage){
         double r = static_cast<double>(std::rand() % 1000)/1000.0;
-        double prob0 = 0.7 - 0.4 * progress_percentage;
-        double prob1 = 0.0 + 0.4 * progress_percentage;
+        double prob0 = 0.7 - 0.3 * progress_percentage;
+        double prob1 = 0.0 + 0.3 * progress_percentage;
         double prob2 = 0.3 - 0.0 * progress_percentage;
         if (r < prob0) return 0;
         if (r < prob0 + prob1) return 1;
@@ -69,6 +69,7 @@ int main(int argc, char *argv[]){
 
     int max_mut = 100;
     for (int i=0; i<max_mut; i++){
+        evo->timestamp_ ++;
         std::cout << "Attempt: " << i << std::endl;
 
 	    auto time_new_indiv = std::chrono::steady_clock::now();    
@@ -89,6 +90,7 @@ int main(int argc, char *argv[]){
         new_indiv.updateChartsAndTPs();
         new_indiv.repairUnspikeLabeling();
         new_indiv.updateChartsAndTPs(true);
+        new_indiv.updateTimestamps();
 
 	    auto time_after_charts = std::chrono::steady_clock::now();
         double time_create_indiv = double(std::chrono::duration_cast<std::chrono::milliseconds> (time_before_mutation - time_new_indiv).count()) / 1000;
@@ -107,14 +109,14 @@ int main(int argc, char *argv[]){
 
     LabelingIndividual final_indiv = *best_indiv;
     final_indiv.updateChartsAndTPs(true);
-    def_V = qle.computeDeformedV(final_indiv.getLabeling());
+    def_V = qle->computeDeformedV(final_indiv.getLabeling());
     
 
     std::vector<Eigen::MatrixXd> vec_border_begs, vec_border_ends;
     std::vector<Eigen::RowVector3d> vec_border_colors;
     final_indiv.getBordersViz(vec_border_begs, vec_border_ends, vec_border_colors);
 
-    Eigen::MatrixXd threshold_colors = qle.distoAboveThreshold(final_indiv.getLabeling(), 10e10);
+    Eigen::MatrixXd threshold_colors = qle->distoAboveThreshold(final_indiv.getLabeling(), 10e10);
 
     // --- VISUALIZATION ---
 
@@ -180,13 +182,25 @@ int main(int argc, char *argv[]){
                 saveFlaggingOnTets(folder + "labeling_on_tets.txt", folder + "tris_to_tets.txt", save_labeling);
             }
 
+            if (make_checkbox("Show timestamps", viewer.data(orig_id).show_custom_labels)){
+                viewer.data(orig_id).clear_labels();
+                Eigen::VectorXi timestamps = final_indiv.getTimestamps();
+                Eigen::MatrixXd N;
+                igl::per_face_normals(V, F, N);
+                double l_avg = igl::avg_edge_length(V, F);
+                for (int i=0; i<F.rows(); i++){
+                    Eigen::RowVector3d p = (V.row(F(i,0)) + V.row(F(i,1)) + V.row(F(i,2)))/3.0;
+                    p -= N.row(i) * l_avg / 3.0;
+                    viewer.data(orig_id).add_label(p, std::to_string(timestamps(i)));
+                }
+            }
+
             make_checkbox("Show mesh", viewer.data(orig_id).show_lines);
             ImGui::End();
         }
     };
 
     updateViz();
-
     viewer.data(hud_id).line_width = 10.0;
     viewer.core().lighting_factor = 0.0;
     viewer.core().set_rotation_type(igl::opengl::ViewerCore::ROTATION_TYPE_TRACKBALL);

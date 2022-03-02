@@ -5,6 +5,8 @@
 #include <igl/per_face_normals.h>
 #include <igl/avg_edge_length.h>
 
+#include "logging.h"
+
 // might want to add normal angle to distance
 
 // Note: such a distance will lead to "round" regions, also it's not mesh independent
@@ -46,6 +48,11 @@ public:
         l_avg_ = igl::avg_edge_length(V, F);
 
     }
+
+    virtual ~Evocube(){
+        coloredPrint("An Evocube bites the dust...", "yellow");
+    }
+
 //private:
     // Set by constructor
     const Eigen::MatrixXd V_; 
@@ -56,5 +63,5 @@ public:
     std::vector<std::vector<int>> VT_, VI_;
     double l_avg_;
 
-
+    int timestamp_ = 0;
 };

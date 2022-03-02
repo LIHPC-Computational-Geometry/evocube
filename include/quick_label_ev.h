@@ -5,6 +5,8 @@
 #include <igl/per_face_normals.h>
 #include <igl/doublearea.h>
 
+#include "logging.h"
+
 class QuickLabelEv {
 public:
 	QuickLabelEv(){}
@@ -32,6 +34,10 @@ public:
 		A = A_; 
 		def_V = def_V_;
 	};*/
+
+	virtual ~QuickLabelEv(){
+        coloredPrint("An Evaluator kicked the bucket...", "yellow");
+    }
 
 private:
 	// Set by constructor

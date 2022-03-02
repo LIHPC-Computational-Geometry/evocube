@@ -9,7 +9,7 @@
 class Evaluator {
 public:
     Evaluator(std::shared_ptr<Evocube> evo, 
-              std::shared_ptr<QuickLabelEv> qle) 
+              std::shared_ptr<const QuickLabelEv> qle) 
         : evo_(evo), qle_(qle){};
 
     double evaluate(const LabelingIndividual& indiv) const {
@@ -19,5 +19,5 @@ public:
     }
 private:
     std::shared_ptr<Evocube> evo_;
-    std::shared_ptr<QuickLabelEv> qle_;
+    std::shared_ptr<const QuickLabelEv> qle_;
 };

@@ -11,12 +11,35 @@
 
 class LabelingIndividual {
 public:
-    LabelingIndividual(std::shared_ptr<Evocube> evo, std::shared_ptr<QuickLabelEv> qle, Eigen::VectorXi labeling) // first generation only
+    LabelingIndividual(std::shared_ptr<Evocube> evo, std::shared_ptr<const QuickLabelEv> qle, Eigen::VectorXi labeling) // first generation only
         : evo_(evo), qle_(qle), labeling_(labeling){ 
-    
+        prev_labeling_ = labeling;
+        timestamps_ = Eigen::VectorXi::Zero(labeling.rows());
     }
     LabelingIndividual(const LabelingIndividual& indiv) : evo_(indiv.evo_), qle_(indiv.qle_){
         labeling_ = indiv.getLabeling();
+        prev_labeling_ = labeling_;
+        timestamps_ = indiv.getTimestamps();
+    }
+
+    LabelingIndividual(const LabelingIndividual& parent1, const LabelingIndividual& parent2){ // Cross operator
+        labeling_ = parent1.getLabeling();
+        timestamps_ = parent1.getTimestamps();
+
+        const Eigen::VectorXi labeling2 = parent2.getLabeling();
+        const Eigen::VectorXi timestamps2 = parent2.getTimestamps();
+
+        for (int i=0; i<labeling_.rows(); i++){ // OPTIM omp
+            if (timestamps2(i) > timestamps_(i)){
+                labeling_(i) = labeling2(i);
+                timestamps_(i) = timestamps2(i);
+            }
+        }
+        prev_labeling_ = labeling_;
+    }
+
+    virtual ~LabelingIndividual(){
+        coloredPrint("An individual breathed his last...", "yellow");
     }
     
     Eigen::VectorXi getLabeling() const {return labeling_;}
@@ -32,17 +55,33 @@ public:
         
         charts_dirty_ = false;
 
+        
+
         if (also_update_turning_points){
             vec_tps.clear();
+            borders_with_tps.clear();
             n_tps = 0;
             for (int i=0; i<borders.size(); i++){
                 std::vector<int> tps = graphcutTurningPoints(borders[i], evo_->V_, per_border_axis[i]);
                 vec_tps.push_back(tps);
                 n_tps += tps.size();
+                if (tps.size() > 0) borders_with_tps.push_back(i);
             }
             turning_points_dirty_ = false;
         }
     };
+
+    void updateTimestamps(){
+        latest_change_ = evo_->timestamp_;
+        for (int i=0; i<labeling_.rows(); i++){ // OPTIM omp
+            if (labeling_(i) != prev_labeling_(i)){
+                //timestamps_(i) ++;
+                timestamps_(i) = evo_->timestamp_;
+            }   
+        }
+        prev_labeling_ = labeling_;
+        timestamps_dirty_ = false;
+    }
 
     void repairHighValenceCorner(){
         checkClean(charts_dirty_);
@@ -64,7 +103,7 @@ public:
         spikes_dirty_ = false;
     }
 
-    void mutationVertexGrow(){
+    void mutationVertexGrow(bool on_turning_point = true){
         checkClean(charts_dirty_);
         int mut_size = 1 + (std::rand() % 7);
         Eigen::VectorXi old_labeling = labeling_;
@@ -75,18 +114,37 @@ public:
         setFlagsDirty();
     }
 
-    void mutationRemoveChart(){
+    void mutationRemoveChart(bool on_invalid_chart = true){
         checkClean(charts_dirty_);
-        Eigen::VectorXi old_labeling = labeling_;
         int chart_id = std::rand() % (charts_.maxCoeff() + 1);
+        if (on_invalid_chart){
+            std::vector<int> candidates;
+            for (int i = 0; i < adj.size(); i++){
+                if (adj[i].size() < 4){
+                    candidates.push_back(i);
+                }
+            }
+            if (candidates.size() > 0) chart_id = candidates[std::rand() % candidates.size()];
+        }
+        Eigen::VectorXi old_labeling = labeling_;
         removeChartMutation(old_labeling, labeling_, charts_, evo_->V_, evo_->F_, 
                             evo_->N_, evo_->TT_, chart_id);
         setFlagsDirty();
     }
 
-    void mutationGreedyPath(){
+    void mutationGreedyPath(bool on_turning_point = true){
         checkClean(charts_dirty_);
         int b = std::rand() % borders.size();
+        int starting_vertex = borders[b][std::rand() % borders[b].size()];
+
+        if (on_turning_point){
+            checkClean(turning_points_dirty_);
+            if (n_tps > 0){
+                b = borders_with_tps[std::rand() % borders_with_tps.size()];
+                starting_vertex = borders[b][vec_tps[b][std::rand() % vec_tps[b].size()]];
+            }
+        }
+
         int chart_id = patches_per_border[b].first;
         int other_chart_id = patches_per_border[b].second;
         if (std::rand() % 2) {
@@ -101,7 +159,6 @@ public:
 
             bool follow_opp = std::rand() % 2 ? true : false; // either pick the other axis, or the same one as the opp chart (only the one on the chart itself is forbidden)
             int other_axis = 3 - axis1 - axis2;
-            int starting_vertex = borders[b][std::rand() % borders[b].size()];
             double distance_threshold = 1 * evo_->l_avg_;
 
             Eigen::RowVector3d direction = Eigen::RowVector3d(0, 0, 0);
@@ -117,7 +174,6 @@ public:
             else {
                 introduced_label = per_chart_labels[other_chart_id];
             }
-            std::cout << "c'est parti" << std::endl;
             directionalPathMutation(evo_->VT_, evo_->TT_, evo_->V_, evo_->F_, evo_->dists_, 
                                     borders, patches_per_border, charts_, direction,
                                     starting_vertex, chart_id, distance_threshold, 
@@ -126,10 +182,8 @@ public:
         }
     }
     
-    
-
-
     double invalidChartsScore() const {
+        checkClean(charts_dirty_);
         int sum = 0;
         for (int i = 0; i < adj.size(); i++){
             if (adj[i].size() < 4){
@@ -158,7 +212,7 @@ public:
         }
     }
 
-    Eigen::MatrixXd getTurningPointsMat(){
+    Eigen::MatrixXd getTurningPointsMat() const {
         checkClean(turning_points_dirty_);
         std::cout << "Displaying " << n_tps << " turning points." << std::endl;
         Eigen::MatrixXd out(n_tps, 3);
@@ -173,27 +227,35 @@ public:
         return out;
     }
 
-
+    Eigen::VectorXi getTimestamps() const {
+        checkClean(timestamps_dirty_);
+        return timestamps_;
+    }
 
     const std::shared_ptr<Evocube> evo_;    
-    const std::shared_ptr<QuickLabelEv> qle_;
-
+    const std::shared_ptr<const QuickLabelEv> qle_;
 
 private:
     Eigen::VectorXi labeling_;
+
+    Eigen::VectorXi prev_labeling_;
+    Eigen::VectorXi timestamps_;
 
     // safety flags 
     bool spikes_dirty_ = true;
     bool charts_dirty_ = true;
     bool turning_points_dirty_ = true;
+    bool timestamps_dirty_ = false;
+    int latest_change_ = -1;
 
     // Chart connectivity info
     Eigen::VectorXi charts_;
-    std::vector<std::vector<int>> adj;
-    std::vector<std::vector<int>> borders;
+    std::vector<std::vector<int>> adj; // Chart adjacency graph
+    std::vector<std::vector<int>> borders; // ordered borders, represented by consecutive vertex ids
     std::vector<std::vector<int>> vec_tps;
-    std::vector<Eigen::RowVector3d> per_border_axis;
-    std::vector<std::pair<int, int>> patches_per_border;
+    std::vector<int> borders_with_tps;
+    std::vector<Eigen::RowVector3d> per_border_axis; // Axis colinear to border (ideally)
+    std::vector<std::pair<int, int>> patches_per_border; // patches on each side of a border
     Eigen::VectorXi per_chart_labels;
     std::vector<int> boundary_triangles; // triangles who have >= 1 edge on a boundary
     int n_tps = 0;
@@ -203,6 +265,7 @@ private:
         spikes_dirty_ = true;
         charts_dirty_ = true;
         turning_points_dirty_ = true;
+        timestamps_dirty_ = true;
     }
 
     void checkClean(bool flag_dirty) const {

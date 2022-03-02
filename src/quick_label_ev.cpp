@@ -73,9 +73,9 @@ Eigen::MatrixXd QuickLabelEv::hardDeformation(const Eigen::VectorXi& labeling) c
 
 	#ifdef DEBUG_QUICK_LABEL_EV
 	igl::writeOBJ("../debug_quick_label_ev.obj", def_V, F_);
+	std::cout << "hardDeformation done" << std::endl;
 	#endif
 
-	std::cout << "hardDeformation done" << std::endl;
 	return def_V;
 }
 
@@ -86,7 +86,6 @@ Eigen::MatrixXd QuickLabelEv::computeDeformedV(const Eigen::VectorXi& labeling) 
 double QuickLabelEv::evaluate(const Eigen::VectorXi& labeling) const {
 	
 	Eigen::MatrixXd def_V = hardDeformation(labeling);
-	std::cout << "hardDeformed in evaluate()" << std::endl;
 
     Eigen::MatrixXd N_def;
     igl::per_face_normals(def_V, F_, N_def);
