@@ -14,8 +14,8 @@ public:
 
     double evaluate(const LabelingIndividual& indiv) const {
         double fast_poly_score = qle_->evaluate(indiv.getLabeling()); // avg disto + flipped triangles
-        double invalid_score = indiv.invalidChartsScore();
-        return  fast_poly_score + 10.0 * invalid_score; // + 10000.0 * invalidChartsScore(adj);
+        double invalid_score = indiv.invalidityScore();
+        return  fast_poly_score + 100.0 * invalid_score; // + 10000.0 * invalidChartsScore(adj);
     }
 private:
     std::shared_ptr<Evocube> evo_;

@@ -77,9 +77,10 @@ void vertexGrowMutation(const Eigen::VectorXi& old_labeling, Eigen::VectorXi& ne
                         const Eigen::MatrixXi& TT, const std::vector<std::vector<int>>& VT,
                         const Eigen::MatrixXd& dists, double threshold_dist,
                         const std::vector<std::vector<int>>& borders,
-                        const std::vector<std::vector<int>>& vec_tps,
                         const std::vector<std::pair<int, int>>& patches_per_border,
-                        const Eigen::VectorXi& per_chart_labels);
+                        const Eigen::VectorXi& per_chart_labels,
+                        int border_id,
+                        int vertex_start);
 
 void removeChartMutation(const Eigen::VectorXi& old_labeling, Eigen::VectorXi& new_labeling, 
                          const Eigen::VectorXi& charts, 

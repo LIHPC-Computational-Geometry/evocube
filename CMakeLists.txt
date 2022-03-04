@@ -51,7 +51,7 @@ add_executable(edit_labeling app/edit_labeling.cpp ${SRCFILES})
 target_link_libraries(edit_labeling ${IGL_VIEWER_LIBS})
 
 add_executable(test_greedy app/test_greedy.cpp ${SRCFILES})
-target_link_libraries(test_greedy ${IGL_VIEWER_LIBS} ${EVOCUBE_LIBS})
+target_link_libraries(test_greedy ${IGL_VIEWER_LIBS} ${EVOCUBE_LIBS} igl::tetgen)
 
 add_executable(openmp_test app/openmp_test.cpp)
 target_link_libraries(openmp_test OpenMP::OpenMP_CXX)

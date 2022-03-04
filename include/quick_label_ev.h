@@ -49,6 +49,7 @@ private:
 	// Each evaluation computes a new deformation
 	// Eigen::MatrixXd def_V_;
 	
+	Eigen::MatrixXd LDLTDeformation(const Eigen::VectorXi& labeling) const;
 	Eigen::MatrixXd hardDeformation(const Eigen::VectorXi& labeling) const;
 
 };

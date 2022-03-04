@@ -38,7 +38,7 @@ void fixHighValenceCorners(const Eigen::MatrixXd& dists,
         #endif
 
         if (std::count(corner_ids.begin(), corner_ids.end(), c) > 3){
-            coloredPrint("High valence corner detected: " + std::to_string(c), "green");
+            coloredPrint("High valence corner detected: id " + std::to_string(c), "green");
 
             std::vector<int> start_tri_ids = VT[c];
         
@@ -359,32 +359,35 @@ void vertexGrowMutation(const Eigen::VectorXi& old_labeling, Eigen::VectorXi& ne
                         const Eigen::MatrixXi& TT, const std::vector<std::vector<int>>& VT,
                         const Eigen::MatrixXd& dists, double threshold_dist,
                         const std::vector<std::vector<int>>& borders,
-                        const std::vector<std::vector<int>>& vec_tps,
                         const std::vector<std::pair<int, int>>& patches_per_border,
-                        const Eigen::VectorXi& per_chart_labels){
+                        const Eigen::VectorXi& per_chart_labels,
+                        int border_id,
+                        int vertex_start){
 
-    int rand_border = std::rand() % borders.size(); // TODO big border big odds
+    /*int border_id = std::rand() % borders.size(); // TODO big border big odds
 
     int n_tps = 0;
     for (auto v: vec_tps) n_tps += v.size();
     bool force_turning_point = true;
     if (force_turning_point && n_tps > 0){
-        while (vec_tps[rand_border].size() == 0){
-            rand_border = std::rand() % borders.size();
+        while (vec_tps[border_id].size() == 0){
+            border_id = std::rand() % borders.size();
         }
     }
 
-    int vertex_start = borders[rand_border][std::rand() % borders[rand_border].size()];
+    int vertex_start = borders[border_id][std::rand() % borders[border_id].size()];
 
-    if (vec_tps[rand_border].size() > 0){
-        int rand_tp = std::rand() % vec_tps[rand_border].size(); 
-        vertex_start = borders[rand_border][vec_tps[rand_border][rand_tp]];
-    }
+    if (vec_tps[border_id].size() > 0){
+        int rand_tp = std::rand() % vec_tps[border_id].size(); 
+        vertex_start = borders[border_id][vec_tps[border_id][rand_tp]];
+    }*/
+
+
 
     int rand_side = std::rand() % 2;
     
-    int chart_pick = rand_side ? patches_per_border[rand_border].first : patches_per_border[rand_border].second;
-    int other_chart = rand_side ? patches_per_border[rand_border].second : patches_per_border[rand_border].first;
+    int chart_pick = rand_side ? patches_per_border[border_id].first : patches_per_border[border_id].second;
+    int other_chart = rand_side ? patches_per_border[border_id].second : patches_per_border[border_id].first;
     int introduced_label = per_chart_labels(other_chart);
 
     std::vector<int> eligible;

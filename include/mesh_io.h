@@ -158,3 +158,67 @@ void triObjtoMeshTet(std::string input_path, std::string output_path){
     Eigen::MatrixXi TT;
     triObjtoMeshTet(input_path, output_path, TV, TT);
 }
+
+void readDotMeshTri(std::string input_path, Eigen::MatrixXd &V, Eigen::MatrixXi &F){
+    std::ifstream input_file(input_path);
+
+    if (input_file.fail()){
+        std::cout << "\033[31mWarning\033[0m: no triangles\n" << std::endl;
+        V = Eigen::MatrixXd(0, 3);
+        F = Eigen::MatrixXi(0, 3);
+    }
+
+    // TODO vertices part is a copy past from readTet function, factorize ?
+    std::string header;
+    for (int i=0; i<4; i++){
+        input_file >> header;
+    }
+
+    std::string section_name;
+    input_file >> section_name;
+
+    if (section_name != "Vertices"){
+        std::cout << "Error : expected Vertices" << std::endl;
+    }
+
+    int n_vertices;
+    input_file >> n_vertices;
+    std::cout << n_vertices << " vertices" << std::endl;
+    V.resize(n_vertices, 3);
+    for (int i=0; i<n_vertices; i++){
+        double a,b,c;
+        input_file >> a;
+        input_file >> b;
+        input_file >> c;
+        V.row(i) = Eigen::RowVector3d(a, b, c);
+        input_file >> a; // discard ref element
+    }
+
+    int discarded = 0;
+    input_file >> section_name;
+    while (section_name != "Triangles" && input_file >> section_name){
+        discarded ++;
+    }
+
+    std::cout << discarded << " elements discarded" << std::endl;
+
+    if (section_name != "Triangles"){
+        std::cout << "Error : expected Triangles" << std::endl;
+    }
+    else {
+        int n_tri;
+        input_file >> n_tri;
+        std::cout << n_tri << " tri" << std::endl;
+        F.resize(n_tri, 3);
+
+        for (int i=0; i<n_tri; i++){
+            int a, b, c;
+            input_file >> a;
+            input_file >> b;
+            input_file >> c;
+            F.row(i) = Eigen::RowVector3i(a-1, b-1, c-1);
+            input_file >> a; // discard ref element
+        }
+    }
+    input_file.close();
+}

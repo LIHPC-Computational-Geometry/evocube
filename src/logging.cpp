@@ -86,3 +86,10 @@ void printLog(std::string filepath){
         std::cout << it.key() << "\t| " << it.value() << '\n';
     }
 }
+
+
+double measureTime(std::chrono::time_point<std::chrono::steady_clock> t1,
+                   std::chrono::time_point<std::chrono::steady_clock> t2){
+    return static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds> 
+                              (t2 - t1).count()) / 1000.0;
+}

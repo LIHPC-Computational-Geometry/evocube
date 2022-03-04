@@ -13,16 +13,20 @@ class LabelingIndividual {
 public:
     LabelingIndividual(std::shared_ptr<Evocube> evo, std::shared_ptr<const QuickLabelEv> qle, Eigen::VectorXi labeling) // first generation only
         : evo_(evo), qle_(qle), labeling_(labeling){ 
+        coloredPrint("An individual has come into existence...", "green");
         prev_labeling_ = labeling;
         timestamps_ = Eigen::VectorXi::Zero(labeling.rows());
     }
     LabelingIndividual(const LabelingIndividual& indiv) : evo_(indiv.evo_), qle_(indiv.qle_){
+        coloredPrint("An individual rose from the shadows...", "green");
         labeling_ = indiv.getLabeling();
         prev_labeling_ = labeling_;
         timestamps_ = indiv.getTimestamps();
     }
 
-    LabelingIndividual(const LabelingIndividual& parent1, const LabelingIndividual& parent2){ // Cross operator
+    LabelingIndividual(const LabelingIndividual& parent1, const LabelingIndividual& parent2)
+        : evo_(parent1.evo_), qle_(parent1.qle_) { // Cross operator
+        coloredPrint("An individual was brought into the world...", "green");
         labeling_ = parent1.getLabeling();
         timestamps_ = parent1.getTimestamps();
 
@@ -36,6 +40,7 @@ public:
             }
         }
         prev_labeling_ = labeling_;
+
     }
 
     virtual ~LabelingIndividual(){
@@ -103,14 +108,29 @@ public:
         spikes_dirty_ = false;
     }
 
-    void mutationVertexGrow(bool on_turning_point = true){
+    void mutationVertexGrow(bool on_turning_point = false){
         checkClean(charts_dirty_);
         int mut_size = 1 + (std::rand() % 7);
         Eigen::VectorXi old_labeling = labeling_;
         double dist_thresh = mut_size * evo_->l_avg_;
-        vertexGrowMutation(old_labeling, labeling_, charts_, evo_->TT_, evo_->VT_, 
+        /*vertexGrowMutation(old_labeling, labeling_, charts_, evo_->TT_, evo_->VT_, 
                            evo_->dists_, dist_thresh , borders, 
-                           vec_tps, patches_per_border, per_chart_labels);
+                           vec_tps, patches_per_border, per_chart_labels);*/
+
+        int b_id = std::rand() % borders.size(); // IMPROVEMENT bigger border bigger odds?
+        int vertex_start = borders[b_id][std::rand() % borders[b_id].size()];
+
+        if (on_turning_point){
+            checkClean(turning_points_dirty_);
+            if (n_tps > 0){
+                b_id = borders_with_tps[std::rand() % borders_with_tps.size()];
+                vertex_start = borders[b_id][vec_tps[b_id][std::rand() % vec_tps[b_id].size()]];
+            }
+        }
+
+        vertexGrowMutation(old_labeling, labeling_, charts_, evo_->TT_, evo_->VT_, 
+                        evo_->dists_, dist_thresh ,
+                        borders, patches_per_border, per_chart_labels, b_id, vertex_start);
         setFlagsDirty();
     }
 
@@ -182,7 +202,7 @@ public:
         }
     }
     
-    double invalidChartsScore() const {
+    int invalidChartsScore() const {
         checkClean(charts_dirty_);
         int sum = 0;
         for (int i = 0; i < adj.size(); i++){
@@ -190,7 +210,45 @@ public:
                 sum += 4 - adj[i].size();
             }
         }
-        return static_cast<double>(sum);
+        return sum;
+    }
+
+    int invalidBordersScore() const {
+        checkClean(charts_dirty_);
+        int sum = 0;
+        for (int b=0; b<patches_per_border.size(); b++){
+            int c1 = patches_per_border[b].first;
+            int c2 = patches_per_border[b].second;
+            int f1 = per_chart_labels[c1];
+            int f2 = per_chart_labels[c2];
+            if (f1 == oppositeLabel(f2)) sum ++;
+        }
+        return sum;
+    }
+
+    int invalidCornersScore() const {
+        checkClean(charts_dirty_);
+        int sum = 0;
+        std::vector<int> corner_ids;
+        for (auto b: borders){
+            corner_ids.push_back(b[0]);
+            corner_ids.push_back(b[b.size() - 1]);
+        }
+
+        std::vector<int> corner_uni = corner_ids; // corners without duplicates
+        std::sort(corner_uni.begin(), corner_uni.end());
+        corner_uni.erase(std::unique(corner_uni.begin(), corner_uni.end()), corner_uni.end());
+
+        for (int c: corner_uni){
+            if (std::count(corner_ids.begin(), corner_ids.end(), c) > 3){
+                sum ++;
+            }
+        }
+        return sum;
+    }
+
+    int invalidityScore() const {
+        return invalidChartsScore() + invalidBordersScore() + invalidCornersScore();
     }
 
     // -- viz code -- //
@@ -214,7 +272,6 @@ public:
 
     Eigen::MatrixXd getTurningPointsMat() const {
         checkClean(turning_points_dirty_);
-        std::cout << "Displaying " << n_tps << " turning points." << std::endl;
         Eigen::MatrixXd out(n_tps, 3);
         int next_id = 0;
         for (int i=0; i<vec_tps.size(); i++){

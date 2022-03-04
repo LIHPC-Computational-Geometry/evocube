@@ -30,6 +30,9 @@ std::vector<std::string> getLogTags(std::string filepath);
 
 void printLog(std::string filepath);
 
+double measureTime(std::chrono::time_point<std::chrono::steady_clock> t1,
+                   std::chrono::time_point<std::chrono::steady_clock> t2);
+
 class Chronometre {
 public:
     Chronometre(std::string log_file)
