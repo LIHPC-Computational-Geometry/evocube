@@ -42,13 +42,13 @@ add_executable(flagging_viewer app/flagging_viewer.cpp ${SRCFILES})
 target_link_libraries(flagging_viewer ${IGL_VIEWER_LIBS} OpenMP::OpenMP_CXX)
 
 add_executable(naive_labeling app/naive_labeling.cpp ${SRCFILES})
-target_link_libraries(naive_labeling igl::core OpenMP::OpenMP_CXX gco)
+target_link_libraries(naive_labeling igl::core OpenMP::OpenMP_CXX ${EVOCUBE_LIBS})
 
 add_executable(ev_test app/ev_test.cpp ${SRCFILES})
-target_link_libraries(ev_test ${IGL_VIEWER_LIBS} OpenMP::OpenMP_CXX OpenNL_psm)
+target_link_libraries(ev_test ${IGL_VIEWER_LIBS} ${EVOCUBE_LIBS} OpenMP::OpenMP_CXX OpenNL_psm)
 
 add_executable(edit_labeling app/edit_labeling.cpp ${SRCFILES})
-target_link_libraries(edit_labeling ${IGL_VIEWER_LIBS})
+target_link_libraries(edit_labeling ${EVOCUBE_LIBS} ${IGL_VIEWER_LIBS})
 
 add_executable(test_greedy app/test_greedy.cpp ${SRCFILES})
 target_link_libraries(test_greedy ${IGL_VIEWER_LIBS} ${EVOCUBE_LIBS} igl::tetgen)

@@ -10,8 +10,7 @@
 
 int main(int argc, char *argv[]){
 
-    std::string folder = "../data/mambo/base1-Part_1.hh.sat/";
-    folder = "../data/S1/";
+    std::string folder = "../data/testf/screwdriver_input_tri/";
 
     Eigen::MatrixXd V;
     Eigen::MatrixXi F;

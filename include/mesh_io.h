@@ -5,6 +5,8 @@
 #include <igl/readOBJ.h>
 #include <igl/copyleft/tetgen/tetrahedralize.h>
 
+#include "logging.h"
+
 // .mesh documentation : https://www.ljll.math.upmc.fr/frey/logiciels/Docmedit.dir/index.html
 // (spelling mistake in HexaHedra)
 
@@ -57,7 +59,7 @@ void readDotMeshTet(std::string input_tets, Eigen::MatrixXd &V, Eigen::MatrixXi 
     input_file >> section_name;
 
     if (section_name != "Vertices"){
-        std::cout << "Error : expected Vertices" << std::endl;
+        coloredPrint("Error : expected Vertices", "red");
     }
 
     int n_vertices;
@@ -82,7 +84,7 @@ void readDotMeshTet(std::string input_tets, Eigen::MatrixXd &V, Eigen::MatrixXi 
     std::cout << discarded << " elements discarded" << std::endl;
 
     if (section_name != "Tetrahedra"){
-        std::cout << "Error : expected Tetrahedra" << std::endl;
+        coloredPrint("Error : expected Tetrahedra", "red");
     }
     else {
         int n_tets;

@@ -12,8 +12,8 @@ int main(int argc, char *argv[]){
 
     Eigen::MatrixXd V;
     Eigen::MatrixXi F;
-
-    igl::readOBJ("../data/S1/boundary.obj", V, F);
+    std::string input_path = argv[1];
+    igl::readOBJ(input_path, V, F);
 
 
 
@@ -52,6 +52,12 @@ int main(int argc, char *argv[]){
         ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
         ImGui::SetNextWindowSize(ImVec2(350, -1), ImGuiCond_FirstUseEver);
         if (ImGui::Begin("IGL")) {
+            if (ImGui::Button("Quick open labeling")){
+                std::string file = input_path.substr(0, input_path.find_last_of("/\\") + 1) + "labeling.txt";
+                std::cout << "Attempting to open: " << file << std::endl;
+                labeling = openFlagging(file, F.rows());
+                updateViz();
+            }
             
             if (ImGui::Button("Open labeling")){
                 std::string file = igl::file_dialog_open();
@@ -63,6 +69,12 @@ int main(int argc, char *argv[]){
                 std::string file = igl::file_dialog_save();
                 saveFlagging(file, labeling);
             }
+
+            if (ImGui::Button("Measure labeling")){
+                std::cout << "Measuring" << std::endl;
+            }
+
+            
 
             ImGui::SliderInt("Insert label", &insert_label, 0, 5);   
             ImGui::End();

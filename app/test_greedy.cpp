@@ -2,6 +2,7 @@
 #include <igl/opengl/glfw/imgui/ImGuiHelpers.h>
 #include <igl/opengl/glfw/imgui/ImGuiMenu.h>
 #include <igl/readOBJ.h>
+#include <igl/file_dialog_save.h>
 #include <ctime>
 #include <random>
 #include <queue>
@@ -257,12 +258,12 @@ int main(int argc, char *argv[]){
                 updateViz();
             }
 
-            /*if (ImGui::Button("Save labeling to B23", ImVec2(-1, 0))){
-                std::string folder = "../data/Basic/B23/";
+            if (ImGui::Button("Save labeling to folder", ImVec2(-1, 0))){
+                std::string folder = igl::file_dialog_save();
                 Eigen::VectorXi save_labeling = final_indiv.getLabeling();
                 saveFlagging(folder + "labeling.txt", save_labeling);
                 saveFlaggingOnTets(folder + "labeling_on_tets.txt", folder + "tris_to_tets.txt", save_labeling);
-            }*/
+            }
 
             if (make_checkbox("Show timestamps", viewer.data(orig_id).show_custom_labels)){
                 viewer.data(orig_id).clear_labels();

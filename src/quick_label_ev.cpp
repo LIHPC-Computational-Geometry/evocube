@@ -66,6 +66,10 @@ Eigen::MatrixXd QuickLabelEv::LDLTDeformation(const Eigen::VectorXi& labeling) c
 	auto buildend = std::chrono::steady_clock::now();
 
     Eigen::SimplicialLDLT<Eigen::SparseMatrix<double>> solver;
+	//Eigen::ConjugateGradient<Eigen::SparseMatrix<double>, Eigen::Lower|Eigen::Upper> solver;
+	/*Eigen::BiCGSTAB<Eigen::SparseMatrix<double>> solver;
+	solver.setMaxIterations(20);
+	solver.setTolerance(0.001);*/
 	solver.compute(A.transpose() * A);
 	std::cout << "computed " << std::endl;
 	if(solver.info() != Eigen::Success) {
@@ -176,7 +180,7 @@ double QuickLabelEv::evaluate(const Eigen::VectorXi& labeling) const {
     Eigen::VectorXd disto;
     computeDisto(V_, def_V, F_, N_, N_def, disto);
 
-	disto = disto * disto;
+	//disto = disto * disto;
 	    
     double final_disto = integrateDistortion(A_, disto);
 
@@ -196,7 +200,6 @@ double QuickLabelEv::evaluate(const Eigen::VectorXi& labeling) const {
     std::cout << "disto.maxCoeff(): " << disto.maxCoeff() << std::endl;
 	std::cout << "A_.minCoeff() : " << A_.minCoeff() << std::endl;*/
 	return final_disto;
-
 }
 
 Eigen::MatrixXd QuickLabelEv::distoAboveThreshold(const Eigen::VectorXi& labeling, double threshold) const {
