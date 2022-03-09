@@ -4,11 +4,18 @@ project(evocube)
 set(CMAKE_CXX_STANDARD 17)
 file(GLOB SRCFILES src/*.cpp)
 
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} 
+    ${CMAKE_CURRENT_SOURCE_DIR}/lib/libHexEx/cmake)
+set(OPENVOLUMEMESH_INCLUDE_DIR
+    ${CMAKE_CURRENT_SOURCE_DIR}/lib/OpenVolumeMesh/src)
+
 add_definitions(-DIGL_VIEWER_VIEWER_QUIET)
 set(LIBIGL_USE_STATIC_LIBRARY ON)
 add_subdirectory(lib/libigl)
 add_subdirectory(lib/gco)
 add_subdirectory(lib/OpenNL_psm)
+add_subdirectory(lib/OpenVolumeMesh)
+add_subdirectory(lib/libHexEx)
 
 find_package(OpenMP REQUIRED)
 
@@ -16,6 +23,8 @@ include_directories(include)
 include_directories(lib/json/include)
 include_directories(lib/gco/include)
 include_directories(lib/OpenNL_psm)
+include_directories(lib/OpenVolumeMesh)
+include_directories(lib/libHexEx/src)
 
 SET(IGL_VIEWER_LIBS
     igl::core
@@ -58,3 +67,6 @@ target_link_libraries(openmp_test OpenMP::OpenMP_CXX)
 
 add_executable(init_from_folder app/init_from_folder.cpp ${SRCFILES})
 target_link_libraries(init_from_folder igl::core igl::tetgen ${EVOCUBE_LIBS})
+
+add_executable(polycube_withHexEx app/polycube_withHexEx.cpp ${SRCFILES})
+target_link_libraries(polycube_withHexEx igl::core igl::tetgen ${EVOCUBE_LIBS} OpenVolumeMesh HexEx)

@@ -224,3 +224,103 @@ void readDotMeshTri(std::string input_path, Eigen::MatrixXd &V, Eigen::MatrixXi 
     }
     input_file.close();
 }
+
+void writeDotMeshHex(std::string path, Eigen::MatrixXd V, Eigen::MatrixXi hexahedra) {
+    // hexahedra : matrix of size (n_hexa, 8)
+
+    std::cout << "Saving hex mesh: " << path << std::endl;
+
+    std::ofstream out_mesh;
+    out_mesh.open(path);
+
+    out_mesh << "MeshVersionFormatted 1\n";
+    out_mesh << "Dimension\n3\n";
+
+    out_mesh << "Vertices\n";
+    out_mesh << V.rows() << "\n";
+    for (int i=0; i<V.rows(); i++){
+        out_mesh << V(i,0) << " " << V(i, 1) << " " << V(i,2) << " 0\n";
+    }
+
+    out_mesh << "Hexahedra\n";
+    out_mesh << hexahedra.rows() << "\n";
+    
+    for (int i=0; i<hexahedra.rows(); i++){
+        for (int j=0; j<8; j++){
+            // Warning : .mesh indices start at 1, not 0
+            out_mesh << hexahedra(i,j) + 1 << " ";
+        }
+        out_mesh << " 0\n";
+    }
+
+    out_mesh << "End\n";
+    out_mesh.close();
+}
+
+void readDotMeshHex(std::string input_hex, Eigen::MatrixXd &V, Eigen::MatrixXi &hexes) {
+    // Note: INDICES START AT 1 !!
+
+    std::ifstream input_file(input_hex);
+
+    std::string header;
+    for (int i=0; i<4; i++){
+        input_file >> header;
+        //std::cout << header <<" ";
+    }
+    //std::cout << std::endl;
+
+    std::string section_name;
+    input_file >> section_name;
+
+    if (section_name != "Vertices"){
+        std::cout << "Error : expected Vertices" << std::endl;
+    }
+
+    int n_vertices;
+    input_file >> n_vertices;
+    std::cout << n_vertices << " vertices" << std::endl;
+    V.resize(n_vertices, 3);
+    for (int i=0; i<n_vertices; i++){
+        double a,b,c;
+        input_file >> a;
+        input_file >> b;
+        input_file >> c;
+        V.row(i) = Eigen::RowVector3d(a, b, c);
+        input_file >> a; // discard ref element
+    }
+
+    int discarded = 0;
+    input_file >> section_name;
+    while (section_name != "Hexahedra" && input_file >> section_name){
+        discarded ++;
+    }
+
+    std::cout << discarded << " elements discarded" << std::endl;
+
+    if (section_name != "Hexahedra"){
+        std::cout << "Error : expected Hexahedra" << std::endl;
+    }
+    else {
+        int n_hex;
+        input_file >> n_hex;
+        std::cout << n_hex << " hexes" << std::endl;
+        hexes.resize(n_hex, 8);
+
+        for (int i=0; i<n_hex; i++){
+            int a,b,c,d,e,f,g,h;
+            input_file >> a;
+            input_file >> b;
+            input_file >> c;
+            input_file >> d;
+            input_file >> e;
+            input_file >> f;
+            input_file >> g;
+            input_file >> h;
+            Eigen::RowVectorXi row(8);
+            row << a-1, b-1, c-1, d-1, e-1, f-1, g-1, h-1;
+            hexes.row(i) = row;
+            input_file >> a; // discard ref element
+        }
+    }
+    input_file.close();
+}

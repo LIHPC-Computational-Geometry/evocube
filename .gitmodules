@@ -4,3 +4,9 @@
 [submodule "lib/json"]
 	path = lib/json
 	url = https://github.com/nlohmann/json.git
+[submodule "lib/libHexEx"]
+	path = lib/libHexEx
+	url = https://gitlab.vci.rwth-aachen.de:9000/HexEx/libHexEx.git
+[submodule "lib/OpenVolumeMesh"]
+	path = lib/OpenVolumeMesh
+	url = https://gitlab.vci.rwth-aachen.de:9000/OpenVolumeMesh/OpenVolumeMesh.git
