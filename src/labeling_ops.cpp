@@ -8,6 +8,8 @@
 #include "logging.h"
 #include "chart.h"
 
+//#define DEBUG_MUTATIONS
+
 void fixHighValenceCorners(const Eigen::MatrixXd& dists, 
                            const Eigen::MatrixXi& TT, 
                            const std::vector<std::vector<int>>& VT, 
@@ -318,7 +320,7 @@ void fixOppositeLabels(const Eigen::MatrixXd& dists,
         if (per_chart_labels(p1) != oppositeLabel(per_chart_labels(p2))){
             continue;
         }
-        coloredPrint("Opposite patches", "red");
+        coloredPrint("Found opposite patches, fixing them...", "cyan");
         const std::vector<int> border = borders[b];
 
         Eigen::VectorXi best_labeling = labeling;
@@ -337,9 +339,7 @@ void fixOppositeLabels(const Eigen::MatrixXd& dists,
                     int chart_id = side;
                     
                     growAroundBorder(dists, TT, VT, charts, border, threshold_dist, chart_id, introduced_label, labeling_attempt);
-                    std::cout << "eval..." << std::endl;
                     double score = qle.evaluate(labeling_attempt);
-                    std::cout << "evaled" << std::endl;
                     if (best_score == -1 || score < best_score){
                         best_score = score;
                         best_labeling = labeling_attempt;
@@ -350,7 +350,6 @@ void fixOppositeLabels(const Eigen::MatrixXd& dists,
 
         labeling = best_labeling;
 
-        // TODO update charts?
     }
 }
 

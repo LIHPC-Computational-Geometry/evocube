@@ -18,7 +18,8 @@ Eigen::MatrixXd TV;
 Eigen::MatrixXi TT;
 Eigen::MatrixXd tet_colors;
 
-bool display_labeling = false;
+bool display_labeling = true;
+std::string folder;
 
 // This function is called every time a keyboard button is pressed
 bool key_down(igl::opengl::glfw::Viewer& viewer, unsigned char key, int modifier){
@@ -57,6 +58,8 @@ bool key_down(igl::opengl::glfw::Viewer& viewer, unsigned char key, int modifier
         viewer.data().set_face_based(true);
 
         if (display_labeling){
+            Eigen::VectorXi tet_labeling = openFlagging(folder + "/labeling_on_tets.txt", 4 * TT.rows());
+            tet_colors = colorsFromFlagging(tet_labeling);
             viewer.data().set_colors(tet_colors);
             std::cout << "tet_colors.rows(): " << tet_colors.rows() << std::endl;
         }
@@ -70,7 +73,7 @@ std::vector<std::string> listDirs(const std::string& s){
     for(auto& p : std::filesystem::directory_iterator(s))
         if (p.is_directory())
             r.push_back(p.path().string());
-
+    std::sort(r.begin(), r.end());
     return r;
 }
 
@@ -78,7 +81,7 @@ int main(int argc, char *argv[]){
     using namespace Eigen;
     using namespace std;
 
-    std::string folder = "../data/DATASET/";
+    folder = "../data/DATASET2/";
     std::vector<std::string> dirs1 = listDirs(folder);
     folder = dirs1[0];
 
@@ -106,12 +109,6 @@ int main(int argc, char *argv[]){
 
     if (argc > 1) input_tets = argv[1];
     readDotMeshTet(input_tets, TV, TT);
-
-
-    if (display_labeling){
-        Eigen::VectorXi tet_labeling = openFlagging(folder + "labeling_on_tets.txt", 4 * TT.rows());
-        tet_colors = colorsFromFlagging(tet_labeling);
-    }
 
     // Plot the generated mesh
     igl::opengl::glfw::Viewer viewer;
@@ -195,5 +192,6 @@ int main(int argc, char *argv[]){
     };
 
     viewer.core().set_rotation_type(igl::opengl::ViewerCore::ROTATION_TYPE_TRACKBALL);
+    viewer.core().background_color = Eigen::Vector4f(255.0/255.0, 255.0/255.0, 255.0/255.0, 1.0);
     viewer.launch();
 }

@@ -17,6 +17,7 @@ public:
 	}
 
 	double evaluate(const Eigen::VectorXi& labeling) const;
+	double evaluate(const Eigen::VectorXi& labeling, int& n_fail_invert) const;
 	
 	Eigen::MatrixXd computeDeformedV(const Eigen::VectorXi& labeling) const;
 	

@@ -108,7 +108,7 @@ public:
         spikes_dirty_ = false;
     }
 
-    void mutationVertexGrow(bool on_turning_point = false){
+    void mutationVertexGrow(bool on_turning_point = true, bool turning_point_only = true){
         checkClean(charts_dirty_);
         int mut_size = 1 + (std::rand() % 7);
         Eigen::VectorXi old_labeling = labeling_;
@@ -126,6 +126,7 @@ public:
                 b_id = borders_with_tps[std::rand() % borders_with_tps.size()];
                 vertex_start = borders[b_id][vec_tps[b_id][std::rand() % vec_tps[b_id].size()]];
             }
+            else if (turning_point_only) return;
         }
 
         vertexGrowMutation(old_labeling, labeling_, charts_, evo_->TT_, evo_->VT_, 

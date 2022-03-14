@@ -71,13 +71,11 @@ Eigen::MatrixXd QuickLabelEv::LDLTDeformation(const Eigen::VectorXi& labeling) c
 	solver.setMaxIterations(20);
 	solver.setTolerance(0.001);*/
 	solver.compute(A.transpose() * A);
-	std::cout << "computed " << std::endl;
 	if(solver.info() != Eigen::Success) {
         std::cout << "ERROR: decomposition failed" << std::endl;
     }
 
     x = solver.solve(A.transpose() * b);
-	std::cout << "solved " << std::endl;
 	if(solver.info() != Eigen::Success) {
         std::cout << "ERROR, solving failed: ";
         if(solver.info() == Eigen::NumericalIssue) 
@@ -171,6 +169,11 @@ Eigen::MatrixXd QuickLabelEv::computeDeformedV(const Eigen::VectorXi& labeling) 
 }
 
 double QuickLabelEv::evaluate(const Eigen::VectorXi& labeling) const {
+	int n_fail_invert;
+	return evaluate(labeling, n_fail_invert);
+}
+
+double QuickLabelEv::evaluate(const Eigen::VectorXi& labeling, int& n_fail_invert) const {
 	
 	Eigen::MatrixXd def_V = LDLTDeformation(labeling);
 
@@ -180,11 +183,11 @@ double QuickLabelEv::evaluate(const Eigen::VectorXi& labeling) const {
     Eigen::VectorXd disto;
     computeDisto(V_, def_V, F_, N_, N_def, disto);
 
-	//disto = disto * disto;
+	disto = disto * disto; // OPTIONAL
 	    
     double final_disto = integrateDistortion(A_, disto);
 
-	int n_fail_invert = 0;
+	n_fail_invert = 0;
 	Eigen::MatrixXd axes_matrix = axesMatrix();
 	for (int i=0; i<labeling.rows(); i++){
 		if (N_def.row(i).dot(axes_matrix.row(labeling(i))) < 0){
@@ -192,7 +195,7 @@ double QuickLabelEv::evaluate(const Eigen::VectorXi& labeling) const {
 		}
 	}
 
-	double invert_coeff = 100.0;
+	double invert_coeff = 1.0;
 	final_disto += invert_coeff * static_cast<double>(n_fail_invert);
 	
     /*std::cout << "n_fail_invert: " << n_fail_invert << std::endl;
