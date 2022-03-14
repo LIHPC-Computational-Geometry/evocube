@@ -36,6 +36,8 @@ SET(EVOCUBE_LIBS
     gco
     OpenMP::OpenMP_CXX
     OpenNL_psm
+    OpenVolumeMesh 
+    HexEx
 )
 
 add_executable(igl_core app/igl_core.cpp)
@@ -69,4 +71,4 @@ add_executable(init_from_folder app/init_from_folder.cpp ${SRCFILES})
 target_link_libraries(init_from_folder igl::core igl::tetgen ${EVOCUBE_LIBS})
 
 add_executable(polycube_withHexEx app/polycube_withHexEx.cpp ${SRCFILES})
-target_link_libraries(polycube_withHexEx igl::core igl::tetgen ${EVOCUBE_LIBS} OpenVolumeMesh HexEx)
+target_link_libraries(polycube_withHexEx igl::core igl::tetgen ${EVOCUBE_LIBS})
