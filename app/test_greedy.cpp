@@ -59,8 +59,6 @@ int main(int argc, char *argv[]){
     ancestor->updateChartsAndTPs(true);
     ancestor->updateTimestamps();
     
-    int mut_count = 1;
-    
     double current_score = evaluator.evaluate(*ancestor);
     Eigen::MatrixXd def_V;// = qle->computeDeformedV(ancestor.getLabeling());
 
@@ -79,13 +77,24 @@ int main(int argc, char *argv[]){
         else return 3;
     };
 
-    int n_generations = 10;
+    auto time_before_evocube = std::chrono::steady_clock::now();
+
+    int n_generations = 20;
     for (int generation=0; generation<n_generations; generation++){
-        int max_mut = 50;
+
+        evo->timestamp_ ++;
+
+        int max_mut = 100;
         Archive<std::shared_ptr<LabelingIndividual>> gen_archive(5);
 
+        std::vector<std::shared_ptr<LabelingIndividual>> new_gen;
+        std::vector<double> new_scores;
+
+        new_gen.resize(max_mut);
+        new_scores.resize(max_mut);
+
+        #pragma omp parallel for
         for (int i=0; i<max_mut; i++){
-            evo->timestamp_ ++;
             std::cout << "Generation " << generation << ", Mutation: " << i << std::endl;
 
             auto time_new_indiv = std::chrono::steady_clock::now();    
@@ -119,7 +128,10 @@ int main(int argc, char *argv[]){
 
             auto time_after_eval = std::chrono::steady_clock::now();
 
-            gen_archive.insert(new_indiv, new_score);
+            //gen_archive.insert(new_indiv, new_score);
+            new_gen[i] = new_indiv;
+            new_scores[i] = new_score;
+            
             /*if (new_score < current_score){
                 current_score = new_score; 
                 best_indiv = new_indiv;
@@ -146,6 +158,10 @@ int main(int argc, char *argv[]){
             std::cout << "\tEval.    \t" << time_eval << std::endl;
             std::cout << "\tArchive  \t" << time_archive << std::endl;
             std::cout << "\tTotal:   \t" << totaltime << std::endl;
+        }
+
+        for (int i=0; i<new_gen.size(); i++){
+            gen_archive.insert(new_gen[i], new_scores[i]);
         }
 
         auto time_after_mutations = std::chrono::steady_clock::now();
@@ -179,6 +195,7 @@ int main(int argc, char *argv[]){
         std::cout << "\tGeneral archive \t" << time_insert_archive << std::endl;
     }
 
+
     std::shared_ptr<LabelingIndividual> final_indiv = archive.getIndiv(0);
 
     final_indiv->updateChartsAndTPs();
@@ -192,6 +209,10 @@ int main(int argc, char *argv[]){
     coloredPrint("Final validity: " + std::to_string(final_indiv->invalidityScore()), "cyan");
 
     Eigen::MatrixXd threshold_colors = qle->distoAboveThreshold(final_indiv->getLabeling(), 100.0);
+
+    auto time_after_evocube = std::chrono::steady_clock::now();
+    double time_evocube = measureTime(time_before_evocube, time_after_evocube);
+    coloredPrint("Evocube time: " + std::to_string(time_evocube), "cyan");
 
     // --- VISUALIZATION ---
 
