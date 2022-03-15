@@ -30,16 +30,35 @@ int main(){
     expected_extension = "obj";
     output_path = "../data/DATASET2/OM_smooth/";*/
 
-    input_path = "../../quadqs_models/";
+    /*input_path = "../../quadqs_models/";
     input_type = CAD_STEP;
     expected_extension = "step";
-    output_path = "../data/DATASET2/abc/";
+    output_path = "../data/DATASET2/abc/";*/
+
+    /*
+    input_path = "../../mambo/Basic";
+    input_type = CAD_STEP;
+    expected_extension = "step";
+    output_path = "../data/DATASET2/basic_mambo/";
+    //*/
+
+    /*
+    input_path = "../../mambo/Simple";
+    input_type = CAD_STEP;
+    expected_extension = "step";
+    output_path = "../data/DATASET2/simple_mambo/";
+    //*/
+
+    input_path = "../../mambo/Medium";
+    input_type = CAD_STEP;
+    expected_extension = "step";
+    output_path = "../data/DATASET2/medium_mambo/";
 
     
 
     std::string path_to_preprocess_app = "../../preprocess_polycube/build/preprocess";
 
-    bool tet_mesh_already_computed = false;
+    bool tet_mesh_already_computed = true;
 
 
     // Output names (you probably shouldn't change these)
@@ -170,17 +189,17 @@ int main(){
             }
             
             computeTetMeshBoundary(TT, TV, new_folder + output_tris_to_tets, boundary_obj_path);
-        }
+        } // !tet_mesh_already_computed
 
         std::string command_labeling = "./test_greedy " + boundary_obj_path + " " + new_folder;
         int result_labeling = system(command_labeling.c_str());
 
-        std::string scale = "1.0";
+        std::string scale = "1.3";
         std::string command_hexex = "./polycube_withHexEx " + output_mesh + " " + new_folder + output_labeling_on_tets + " " + new_folder + output_hex + " " + scale;
         int result_hexex = system(command_hexex.c_str());
 
         //./test_greedy ../data/DATASET2/OM_smoothscrewdriver_input_tri/boundary.obj 0
-        //./polycube_withHexEx ../data/DATASET2/OM_smoothscrewdriver_input_tri/tetra.mesh ../data/DATASET2/OM_smoothscrewdriver_input_tri/labeling_on_tets.txt ../data/DATASET2/OM_smoothscrewdriver_input_tri/hexes.mesh 0.85
+        //./polycube_withHexEx ../data/DATASET2/medium_mambo/M6/tetra.mesh ../data/DATASET2/medium_mambo/M6/labeling_on_tets.txt ../data/DATASET2/medium_mambo/M6/hexes.mesh 1.4
 
         //break;
     }

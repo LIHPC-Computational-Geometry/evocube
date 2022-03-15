@@ -27,7 +27,8 @@ void directionalPathMutation(const std::vector<std::vector<int>>& VT,
                              int introduced_label,
                              Eigen::VectorXi& labeling);
 
-void unspikeLabeling(const Eigen::MatrixXi& TT, const std::vector<int>& boundary_triangles, Eigen::VectorXi& labeling);
+void unspikeLabeling(const Eigen::MatrixXi& TT, const std::vector<int>& boundary_triangles, 
+                     const Eigen::VectorXi& charts, Eigen::VectorXi& labeling);
  
 void growFromTris(const Eigen::VectorXi& old_labeling, Eigen::VectorXi& new_labeling, 
                  const Eigen::MatrixXi& TT, const Eigen::MatrixXd& dists, 

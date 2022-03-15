@@ -81,6 +81,6 @@ double integrateDistortion(const Eigen::VectorXd& A,
 
     std::cout << "infinite values: " << n_inf << std::endl;
 
-    return (A * disto).sum() / A.sum() + static_cast<double>(n_inf * 10);
+    return (A * disto).sum() / A.sum() + static_cast<double>(n_inf * 10000);
 
 }

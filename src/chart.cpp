@@ -213,20 +213,27 @@ void computeBoundaries(const Eigen::MatrixXi& TT, const Eigen::MatrixXi& F,
         // Go through consecutive edges until end is reached
         int last_added = v_ids[v_ids.size()-1];
         while (last_added != last_elem){
-            for (int i=0; i<vec.size(); i++){
+            bool added = false;
+            for (int i=0; i<vec.size(); i++){ // OPTIM possible
                 std::pair<int,int> pair = vec[i];
                 if (pair.first == last_added){
                     v_ids.push_back(pair.second);
                     last_added = pair.second;
                     vec.erase(vec.begin()+i);
+                    added = true;
                     break;
                 }
                 if (pair.second == last_added){
                     v_ids.push_back(pair.first);
                     last_added = pair.first;
                     vec.erase(vec.begin()+i);
+                    added = true;
                     break;
                 }
+            }
+            if (!added || v_ids.size() > 3 * F.rows()) {
+                coloredPrint("Failed to identify border. Non-manifold?", "red");
+                break;
             }
         }
 

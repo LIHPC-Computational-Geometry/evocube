@@ -172,7 +172,8 @@ void directionalPathMutation(const std::vector<std::vector<int>>& VT,
     #endif
 }
 
-void unspikeLabeling(const Eigen::MatrixXi& TT, const std::vector<int>& boundary_triangles, Eigen::VectorXi& labeling){
+void unspikeLabeling(const Eigen::MatrixXi& TT, const std::vector<int>& boundary_triangles, 
+                     const Eigen::VectorXi& charts, Eigen::VectorXi& labeling){
     // Initialize queue with all triangles adjacent to boundaries
     // pop and check triangle for unspike operation
     // if triangle changes, add its neighbors to queue
@@ -182,10 +183,11 @@ void unspikeLabeling(const Eigen::MatrixXi& TT, const std::vector<int>& boundary
     std::queue<int> queue;
     for (const int tri: boundary_triangles) queue.push(tri);
 
-    auto unspikeTriangle = [&labeling, &TT](int k){
+    auto unspikeTriangle = [&labeling, &charts, &TT](int k){
         for (int j=0; j<TT.cols() - 1; j++){
             for (int l=j+1; l<TT.cols(); l++){
-                if (labeling(TT(k,j)) == labeling(TT(k,l)) && labeling(TT(k,j)) != labeling(k)){
+                if ((labeling(TT(k,j)) == labeling(TT(k,l)) && labeling(TT(k,j)) != labeling(k))
+                    && charts(TT(k,j)) == charts(TT(k,l))){
                     // Found two neighboring triangles with the same label
                     // AND their label is different from my own
                     // So change my label to their's

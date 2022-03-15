@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include <Eigen/Core>
+#include <Eigen/Geometry>
 
 #include "evocube.h"
 #include "chart.h"
@@ -103,7 +104,8 @@ public:
     }
 
     void repairUnspikeLabeling(){
-        unspikeLabeling(evo_->TT_, boundary_triangles, labeling_);
+        checkClean(charts_dirty_);
+        unspikeLabeling(evo_->TT_, boundary_triangles, charts_, labeling_);
         setFlagsDirty();
         spikes_dirty_ = false;
     }
@@ -113,9 +115,6 @@ public:
         int mut_size = 1 + (std::rand() % 7);
         Eigen::VectorXi old_labeling = labeling_;
         double dist_thresh = mut_size * evo_->l_avg_;
-        /*vertexGrowMutation(old_labeling, labeling_, charts_, evo_->TT_, evo_->VT_, 
-                           evo_->dists_, dist_thresh , borders, 
-                           vec_tps, patches_per_border, per_chart_labels);*/
 
         int b_id = std::rand() % borders.size(); // IMPROVEMENT bigger border bigger odds?
         int vertex_start = borders[b_id][std::rand() % borders[b_id].size()];
@@ -132,6 +131,33 @@ public:
         vertexGrowMutation(old_labeling, labeling_, charts_, evo_->TT_, evo_->VT_, 
                         evo_->dists_, dist_thresh ,
                         borders, patches_per_border, per_chart_labels, b_id, vertex_start);
+        setFlagsDirty();
+    }
+
+    void mutationBorderGrow(){
+        checkClean(charts_dirty_);
+        int mut_size = 2 + (std::rand() % 8);
+        Eigen::VectorXi old_labeling = labeling_;
+        double dist_thresh = mut_size * evo_->l_avg_;
+
+        int b_id = std::rand() % borders.size(); // IMPROVEMENT bigger border bigger odds?
+        int chart_id = patches_per_border[b_id].first;
+        int other_chart_id = patches_per_border[b_id].second;
+        if (std::rand() % 2) {
+            chart_id = patches_per_border[b_id].second;
+            other_chart_id = patches_per_border[b_id].first;
+        }
+
+        /*
+        int introduced_label = std::rand() % 6;
+        while (introduced_label == oppositeLabel(per_chart_labels[patches_per_border[b_id].first])
+            || introduced_label == oppositeLabel(per_chart_labels[patches_per_border[b_id].second])){
+            introduced_label = std::rand() % 6;
+        }*/
+        int introduced_label = per_chart_labels[other_chart_id];
+
+        growAroundBorder(evo_->dists_, evo_->TT_, evo_->VT_, charts_, borders[b_id], 
+                         dist_thresh, chart_id, introduced_label, labeling_);
         setFlagsDirty();
     }
 
@@ -252,6 +278,17 @@ public:
         return invalidChartsScore() + invalidBordersScore() + invalidCornersScore();
     }
 
+    double fidelityScore() const {
+        double score = 0.0;
+        Eigen::MatrixXd axes = axesMatrix();
+        for (int i=0; i<evo_->F_.rows(); i++){
+            Eigen::Vector3d axis = axes.row(labeling_(i)).transpose();
+            Eigen::Vector3d n = evo_->N_.row(i).transpose();
+            score += 1.0 - n.dot(axis);
+        }
+        return score;
+    }
+
     // -- viz code -- //
 
     void getBordersViz(std::vector<Eigen::MatrixXd>& vec_border_begs, 
@@ -288,6 +325,20 @@ public:
     Eigen::VectorXi getTimestamps() const {
         checkClean(timestamps_dirty_);
         return timestamps_;
+    }
+
+    int countCorners() const {
+        checkClean(charts_dirty_);
+        std::vector<int> corner_ids;
+        for (auto b: borders){
+            corner_ids.push_back(b[0]);
+            corner_ids.push_back(b[b.size() - 1]);
+        }
+        std::vector<int> corner_uni = corner_ids; // corners without duplicates
+        std::sort(corner_uni.begin(), corner_uni.end());
+        corner_uni.erase(std::unique(corner_uni.begin(), corner_uni.end()), corner_uni.end());
+        std::cout << "#corners: " << corner_uni.size() << std::endl;
+        return corner_uni.size();
     }
 
     const std::shared_ptr<Evocube> evo_;    

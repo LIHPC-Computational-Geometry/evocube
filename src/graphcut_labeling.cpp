@@ -167,6 +167,7 @@ std::vector<int> graphcutTurningPoints(const std::vector<int>& bnd, const Eigen:
         }
     }
 
+    double falloff_binary = 1.0; // smaller value -> more turning points
 
 	try{
 		GCoptimizationGeneralGraph *gc = new GCoptimizationGeneralGraph(num_elem,num_labels);
@@ -178,7 +179,7 @@ std::vector<int> graphcutTurningPoints(const std::vector<int>& bnd, const Eigen:
             Eigen::RowVector3d edge2 = (V.row(bnd[i+2]) - V.row(bnd[i+1])).normalized();
             edge1 = edge1.normalized();
             edge2 = edge2.normalized();
-            double dot = (edge1.dot(edge2)-1)/1.2;
+            double dot = (edge1.dot(edge2)-1)/falloff_binary;
             double cost = std::exp(-(1./2.0)*std::pow(dot,2));
             gc->setNeighbors(i, i+1, (int) (100*cost));
         }

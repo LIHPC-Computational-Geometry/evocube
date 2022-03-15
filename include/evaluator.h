@@ -15,7 +15,9 @@ public:
     double evaluate(const LabelingIndividual& indiv, double& fast_poly_score, double& invalid_score, int& n_fail_invert) const {
         fast_poly_score = qle_->evaluate(indiv.getLabeling(), n_fail_invert); // avg disto + flipped triangles
         invalid_score = indiv.invalidityScore();
-        return  fast_poly_score + 100.0 * invalid_score; // + 10000.0 * invalidChartsScore(adj);
+        double compact_score = static_cast<double>(indiv.countCorners());
+        double fidelity_score = indiv.fidelityScore();
+        return  fast_poly_score + 100.0 * invalid_score + compact_score + 10.0 * fidelity_score;
     }
 
     double evaluate(const LabelingIndividual& indiv) const {

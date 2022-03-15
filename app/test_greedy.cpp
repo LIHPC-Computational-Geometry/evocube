@@ -48,7 +48,7 @@ int main(int argc, char *argv[]){
 
     std::cout << "Fix init... " << std::endl;
     ancestor->updateChartsAndTPs();
-    ancestor->repairHighValenceCorner();
+    //ancestor->repairHighValenceCorner();
     ancestor->updateChartsAndTPs();
     ancestor->repairOppositeLabels();
     ancestor->updateChartsAndTPs();
@@ -69,17 +69,19 @@ int main(int argc, char *argv[]){
 
     auto pickMutation = [](double progress_percentage){
         double r = static_cast<double>(std::rand() % 1000)/1000.0;
-        double prob0 = 0.7 - 0.3 * progress_percentage;
+        double prob0 = 0.4 - 0.3 * progress_percentage;
         double prob1 = 0.0 + 0.3 * progress_percentage;
-        double prob2 = 0.3 - 0.0 * progress_percentage;
+        double prob2 = 0.2 - 0.0 * progress_percentage;
+        double prob3 = 0.4 - 0.0 * progress_percentage;
         if (r < prob0) return 0;
         if (r < prob0 + prob1) return 1;
-        else return 2;
+        if (r < prob0 + prob1 + prob2) return 2;
+        else return 3;
     };
 
-    int n_generations = 20;
+    int n_generations = 10;
     for (int generation=0; generation<n_generations; generation++){
-        int max_mut = 30;
+        int max_mut = 50;
         Archive<std::shared_ptr<LabelingIndividual>> gen_archive(5);
 
         for (int i=0; i<max_mut; i++){
@@ -98,10 +100,11 @@ int main(int argc, char *argv[]){
 
             int mutation_type = std::rand() % 3;
             mutation_type = pickMutation(static_cast<double>(generation)/n_generations);
-            //mutation_type = 0;
+            //mutation_type = 3;
             if (mutation_type == 0) new_indiv->mutationVertexGrow();
             if (mutation_type == 1) new_indiv->mutationRemoveChart();
             if (mutation_type == 2) new_indiv->mutationGreedyPath();
+            if (mutation_type == 3) new_indiv->mutationBorderGrow();
 
             auto time_after_mutation = std::chrono::steady_clock::now();
 
@@ -176,19 +179,19 @@ int main(int argc, char *argv[]){
         std::cout << "\tGeneral archive \t" << time_insert_archive << std::endl;
     }
 
-    LabelingIndividual final_indiv = *archive.getIndiv(0);
+    std::shared_ptr<LabelingIndividual> final_indiv = archive.getIndiv(0);
 
-    final_indiv.updateChartsAndTPs();
-    final_indiv.repairHighValenceCorner();
-    final_indiv.updateChartsAndTPs();
-    final_indiv.repairOppositeLabels();
-    final_indiv.updateChartsAndTPs();
-    final_indiv.updateChartsAndTPs(true);
-    def_V = qle->computeDeformedV(final_indiv.getLabeling());
+    final_indiv->updateChartsAndTPs();
+    final_indiv->repairHighValenceCorner();
+    final_indiv->updateChartsAndTPs();
+    final_indiv->repairOppositeLabels();
+    final_indiv->updateChartsAndTPs();
+    final_indiv->updateChartsAndTPs(true);
+    def_V = qle->computeDeformedV(final_indiv->getLabeling());
 
-    coloredPrint("Final validity: " + std::to_string(final_indiv.invalidityScore()), "cyan");
+    coloredPrint("Final validity: " + std::to_string(final_indiv->invalidityScore()), "cyan");
 
-    Eigen::MatrixXd threshold_colors = qle->distoAboveThreshold(final_indiv.getLabeling(), 100.0);
+    Eigen::MatrixXd threshold_colors = qle->distoAboveThreshold(final_indiv->getLabeling(), 100.0);
 
     // --- VISUALIZATION ---
 
@@ -203,7 +206,7 @@ int main(int argc, char *argv[]){
         bool flip_label_normals = false;
         int arch_elem = 0;
 
-        std::shared_ptr<LabelingIndividual> best_indiv = archive.getIndiv(0); 
+        std::shared_ptr<LabelingIndividual> best_indiv = final_indiv; 
         std::shared_ptr<LabelingIndividual> displayed_indiv = best_indiv;
 
         igl::opengl::glfw::imgui::ImGuiMenu menu;
@@ -269,14 +272,14 @@ int main(int argc, char *argv[]){
                 if (ImGui::Button("Save labeling to folder", ImVec2(-1, 0))){
                     std::string folder = igl::file_dialog_save();
                     folder = folder.substr(0, folder.find_last_of("/\\") + 1);
-                    Eigen::VectorXi save_labeling = final_indiv.getLabeling();
+                    Eigen::VectorXi save_labeling = final_indiv->getLabeling();
                     saveFlagging(folder + "labeling.txt", save_labeling);
                     saveFlaggingOnTets(folder + "labeling_on_tets.txt", folder + "tris_to_tets.txt", save_labeling);
                 }
 
                 if (make_checkbox("Show timestamps", viewer.data(orig_id).show_custom_labels)){
                     viewer.data(orig_id).clear_labels();
-                    Eigen::VectorXi timestamps = final_indiv.getTimestamps();
+                    Eigen::VectorXi timestamps = final_indiv->getTimestamps();
                     Eigen::MatrixXd N;
                     igl::per_face_normals(V, F, N);
                     if (flip_label_normals) N = -N;
@@ -291,6 +294,16 @@ int main(int argc, char *argv[]){
                 ImGui::Checkbox("Flip label normals", &flip_label_normals);
 
                 
+                if (ImGui::Button("Quick hexex")){
+                    std::string folder = input_tris.substr(0, input_tris.find_last_of("/\\") + 1);
+                    std::string tet = folder + "/tetra.mesh";
+                    std::string label_tet = folder + "/labeling_on_tets.txt";
+                    std::string hexes = folder + "/hexes.mesh";
+                    double scale = 1.4;
+                    std::string command = "./polycube_withHexEx  " + tet + " " + label_tet + " " + hexes + " 1.4";
+                    std::cout << "Running command: " << command << std::endl;
+                    int result_command = system(command.c_str());
+                }
 
                 make_checkbox("Show mesh", viewer.data(orig_id).show_lines);
                 ImGui::End();
@@ -308,7 +321,7 @@ int main(int argc, char *argv[]){
 
     else { // !show_ui
         std::string save_path = argv[2];
-        Eigen::VectorXi save_labeling = final_indiv.getLabeling();
+        Eigen::VectorXi save_labeling = final_indiv->getLabeling();
 
         // TODO save polycube
         std::cout << "Saving to:" << save_path << std::endl;

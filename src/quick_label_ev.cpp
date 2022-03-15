@@ -183,7 +183,7 @@ double QuickLabelEv::evaluate(const Eigen::VectorXi& labeling, int& n_fail_inver
     Eigen::VectorXd disto;
     computeDisto(V_, def_V, F_, N_, N_def, disto);
 
-	disto = disto * disto; // OPTIONAL
+	//disto = disto * disto; // OPTIONAL
 	    
     double final_disto = integrateDistortion(A_, disto);
 
@@ -195,7 +195,7 @@ double QuickLabelEv::evaluate(const Eigen::VectorXi& labeling, int& n_fail_inver
 		}
 	}
 
-	double invert_coeff = 1.0;
+	double invert_coeff = 100000.0 * 1.0 / F_.rows();
 	final_disto += invert_coeff * static_cast<double>(n_fail_invert);
 	
     /*std::cout << "n_fail_invert: " << n_fail_invert << std::endl;

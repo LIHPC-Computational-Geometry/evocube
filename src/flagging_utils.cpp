@@ -68,9 +68,16 @@ Eigen::MatrixXd colorsFromFlagging(const Eigen::VectorXi& flagging){
     color_map.row(4) = Eigen::RowVector3d(5.0/255, 74.0/255, 145.0/255);
     //color_map.row(5) = Eigen::RowVector3d(0.0/255, 44.0/255, 115.0/255);
 
-    color_map.row(1) = color_map.row(0).array() - 1.2 * diff/255.0;
-    color_map.row(3) = color_map.row(2).array() - 1.2 * diff/255.0;
-    color_map.row(5) = color_map.row(4).array() - 0.6 * diff/255.0;
+    // German theme
+    //color_map.row(0) = Eigen::RowVector3d(0.0/255, 0.0/255, 0.0/255);
+    //color_map.row(2) = Eigen::RowVector3d(221.0/255, 0.0/255, 0.0/255);
+    //color_map.row(4) = Eigen::RowVector3d(255.0/255, 206.0/255, 0.0/255);
+
+    color_map.row(1) = color_map.row(0).array() - 0.9 * diff/255.0;
+    color_map.row(3) = color_map.row(2).array() - 0.8 * diff/255.0;
+    color_map.row(5) = color_map.row(4).array() - 0.5 * diff/255.0;
+
+    color_map = color_map.array() * 1.1;
 
 
     // TODO REMOVE: flipping for a figure
