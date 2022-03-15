@@ -36,7 +36,7 @@ int main(int argc, char* argv[]) {
 
     //export as CSV
     std::ofstream ofs(csv_file.c_str(),std::ofstream::out);
-    ofs << "hex index,minSJ" << std::endl;
+    ofs << "hex index,SJ" << std::endl;
     for(int h = 0; h < min_sj.rows(); h++) {
         ofs << h << "," << min_sj(h) << std::endl;
     }
