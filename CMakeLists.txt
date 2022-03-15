@@ -72,3 +72,6 @@ target_link_libraries(init_from_folder igl::core igl::tetgen ${EVOCUBE_LIBS})
 
 add_executable(polycube_withHexEx app/polycube_withHexEx.cpp ${SRCFILES})
 target_link_libraries(polycube_withHexEx igl::core igl::tetgen ${EVOCUBE_LIBS})
+
+add_executable(test_scaled_jacobian app/test_scaled_jacobian.cpp ${SRCFILES})
+target_link_libraries(test_scaled_jacobian igl::core igl::tetgen ${EVOCUBE_LIBS})
