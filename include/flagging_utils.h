@@ -17,3 +17,5 @@ Eigen::MatrixXd colorsFromFlagging(const Eigen::VectorXi& flagging);
 void saveFlagging(std::string file_name, const Eigen::VectorXi& assignment);
 
 void saveFlaggingOnTets(std::string file_name, std::string tris_to_tets_path, const Eigen::VectorXi& assignment);
+
+Eigen::VectorXi normalFlagging(const Eigen::MatrixXd& V, const Eigen::MatrixXi& F);

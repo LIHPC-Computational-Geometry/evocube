@@ -315,7 +315,7 @@ public:
             Eigen::Vector3d n = evo_->N_.row(i).transpose();
             score += 1.0 - n.dot(axis);
         }
-        return score;
+        return score / evo_->F_.rows();
     }
 
     // -- viz code -- //
@@ -367,6 +367,21 @@ public:
         std::sort(corner_uni.begin(), corner_uni.end());
         corner_uni.erase(std::unique(corner_uni.begin(), corner_uni.end()), corner_uni.end());
         return corner_uni.size();
+    }
+
+    void fillIndivLogInfo(std::string logs_path, std::string indiv_name){
+        //checkClean(spikes_dirty_);
+        checkClean(charts_dirty_);
+        checkClean(turning_points_dirty_);
+        //checkClean(timestamps_dirty_);
+        fillLogInfo(indiv_name, "#corners", logs_path, std::to_string(countCorners()));
+        fillLogInfo(indiv_name, "#charts", logs_path, std::to_string(charts_.maxCoeff() + 1));
+        fillLogInfo(indiv_name, "#tps", logs_path, std::to_string(n_tps));
+        fillLogInfo(indiv_name, "fidelity", logs_path, std::to_string(fidelityScore()));
+        fillLogInfo(indiv_name, "InvalidTotal", logs_path, std::to_string(invalidityScore()));
+        fillLogInfo(indiv_name, "InvalidCharts", logs_path, std::to_string(invalidChartsScore()));
+        fillLogInfo(indiv_name, "InvalidBorders", logs_path, std::to_string(invalidBordersScore()));
+        fillLogInfo(indiv_name, "InvalidCorners", logs_path, std::to_string(invalidCornersScore()));
     }
 
     const std::shared_ptr<Evocube> evo_;    

@@ -1,5 +1,6 @@
 
 #include "flagging_utils.h"
+#include <Eigen/Geometry>
 
 Eigen::MatrixXd axesMatrix(){
     Eigen::MatrixXd axes = Eigen::MatrixXd::Zero(6,3);
@@ -127,4 +128,27 @@ void saveFlaggingOnTets(std::string file_name, std::string tris_to_tets_path, co
         out_assig << assigment_tets(i) << "\n";
     }
     out_assig.close();
+}
+
+Eigen::VectorXi normalFlagging(const Eigen::MatrixXd& V, const Eigen::MatrixXi& F){
+    Eigen::MatrixXd axes = axesMatrix();
+    Eigen::VectorXi flagging = Eigen::VectorXi::Zero(F.rows());
+
+    for (int i=0; i<flagging.rows(); i++){
+        Eigen::RowVector3d seg1 = V.row(F(i,1))-V.row(F(i,0)); 
+        Eigen::RowVector3d seg2 = V.row(F(i,2))-V.row(F(i,0)); 
+        Eigen::RowVector3d cross_p = seg1.cross(seg2);
+        cross_p /= cross_p.norm();
+
+        double best = 0;
+        double mini = cross_p.dot(axes.row(0));
+        for (int ax=1; ax<axes.rows(); ax++){
+            if (cross_p.dot(axes.row(ax)) > mini){
+                best = ax;
+                mini = cross_p.dot(axes.row(ax));
+            }
+        }
+        flagging(i) = best;
+    }
+    return flagging;
 }

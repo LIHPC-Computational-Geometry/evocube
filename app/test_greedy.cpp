@@ -7,6 +7,7 @@
 #include <ctime>
 #include <random>
 #include <queue>
+#include <nlohmann/json.hpp>
 
 #include "graphcut_labeling.h"
 #include "flagging_utils.h"
@@ -82,7 +83,7 @@ int main(int argc, char *argv[]){
 
     auto time_before_evocube = std::chrono::steady_clock::now();
 
-    int n_generations = 30;
+    int n_generations = 5;
     for (int generation=0; generation<n_generations; generation++){
 
         evo->timestamp_ ++;
@@ -96,7 +97,7 @@ int main(int argc, char *argv[]){
         new_gen.resize(max_mut);
         new_scores.resize(max_mut);
 
-        //#pragma omp parallel for
+        #pragma omp parallel for
         for (int i=0; i<max_mut; i++){
             std::cout << "Generation " << generation << ", Mutation: " << i << std::endl;
 
@@ -360,6 +361,29 @@ int main(int argc, char *argv[]){
 
         saveFlagging(save_path + "/labeling_init.txt", labeling_init);
         igl::writeOBJ(save_path + "/fast_polycube_surf.obj", def_V, F);
+
+        std::string logs_path = save_path + "/logs.json";
+        final_indiv->fillIndivLogInfo(logs_path, "LabelingFinal");
+
+        std::shared_ptr<LabelingIndividual> graph_cut_indiv = std::make_shared<LabelingIndividual>(LabelingIndividual(evo, qle, labeling_init));
+        graph_cut_indiv->updateChartsAndTPs(true);
+        graph_cut_indiv->fillIndivLogInfo(logs_path, "LabelingGraphCut");
+
+        Eigen::VectorXi normal_labeling = normalFlagging(V, F);
+        std::shared_ptr<LabelingIndividual> normal_indiv = std::make_shared<LabelingIndividual>(LabelingIndividual(evo, qle, normal_labeling));
+        normal_indiv->updateChartsAndTPs(true);
+        normal_indiv->fillIndivLogInfo(logs_path, "LabelingNormal");
+
+        auto start_time = std::chrono::system_clock::now();
+        std::time_t start_timet = std::chrono::system_clock::to_time_t(start_time);
+        fillLogInfo("FinishTime", logs_path, std::ctime(&start_timet));
+
+
+        // TODO fill logs:
+        // all timing info
+        // mesh info
+        // evaluator info for Individuals
+        // hexes info
     }
 
     return 0;

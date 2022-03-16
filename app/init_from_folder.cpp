@@ -60,8 +60,7 @@ int main(){
     expected_extension = "step";
     output_path = "../data/DATASET2/medium_mambo/";
 
-
-
+    
     // -------------------- INIT_FROM_FOLDER --------------------
 
     std::string path_to_preprocess_app = "../../preprocess_polycube/build/preprocess";
@@ -75,8 +74,15 @@ int main(){
     std::string output_labeling_on_tets = "/labeling_on_tets.txt";
     std::string output_bnd = "/boundary.obj";
     std::string output_hex = "/hexes.mesh";
+    std::string logs_file = "/logs.json";
+
+    bool skip_first = false;
 
     for (const auto & entry : std::filesystem::directory_iterator(input_path)){
+        if (skip_first){
+            skip_first = false;
+            continue;
+        }
         std::cout << "Dealing with: " << entry << std::endl;
         std::string base_filename = std::string(entry.path()).substr(std::string(entry.path()).find_last_of("/\\") + 1);
         std::string::size_type const p(base_filename.find_first_of('.'));
@@ -189,6 +195,10 @@ int main(){
             
             computeTetMeshBoundary(TT, TV, new_folder + output_tris_to_tets, boundary_obj_path);
         } // !tet_mesh_already_computed
+        
+        std::string logs_path = new_folder + logs_file;
+        resetLogFile(logs_path);
+        fillLogInfo("test", logs_path, "0");
 
         std::string command_labeling = "./test_greedy " + boundary_obj_path + " " + new_folder;
         int result_labeling = system(command_labeling.c_str());
@@ -198,9 +208,9 @@ int main(){
         int result_hexex = system(command_hexex.c_str());
 
         //./test_greedy ../data/DATASET2/OM_smoothscrewdriver_input_tri/boundary.obj 0
-        //./polycube_withHexEx ../data/DATASET2/medium_mambo/M6/tetra.mesh ../data/DATASET2/medium_mambo/M6/labeling_on_tets.txt ../data/DATASET2/medium_mambo/M6/hexes.mesh 1.4
+        //./polycube_withHexEx ../data/DATASET2/medium_mambo/M8/tetra.mesh ../data/DATASET2/medium_mambo/M8/labeling_on_tets.txt ../data/DATASET2/medium_mambo/M8/hexes.mesh 1.4
 
-        //break;
+        break;
     }
         
 }
