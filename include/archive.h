@@ -54,7 +54,7 @@ double Archive<T>::requiredScore() const {
 
 template<typename T> 
 bool Archive<T>::insert(T individual, double score){
-    if (score >= requiredScore()) return false;
+    if (score >= requiredScore() && !(archive_.size() == 0)) return false;
     
     auto it = archive_.begin();
     while (it != archive_.end() && score <= (*it).first){
@@ -104,6 +104,11 @@ template<typename T>
 int Archive<T>::probabilisticIndividual() const {
     // Inspiration: Roulette wheel selection section from
     // "Towards Automatic Blocking of Shapes using Evolutionary Algorithm"
+
+    if (archive_.size() == 0) {
+        coloredPrint("Error: called probabilisticIndividual but archive is empty", "red");
+    }
+
     double total_props = 0;
     int PN = archive_.size();
     for (int i=1; i<PN+1; i++) total_props += i;

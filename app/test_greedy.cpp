@@ -18,6 +18,8 @@
 #include "labeling_individual.h"
 #include "archive.h"
 
+//#define DEBUG_EVOCUBE
+
 #define READ_DOT_MESH
 #ifdef READ_DOT_MESH
 #include "mesh_io.h" // requires tetgen
@@ -103,9 +105,14 @@ int main(int argc, char *argv[]){
             //std::shared_ptr<LabelingIndividual> new_indiv = std::make_shared<LabelingIndividual>(LabelingIndividual(*best_indiv));
             
             int pick = archive.probabilisticIndividual();
+
             std::shared_ptr<LabelingIndividual> new_indiv = std::make_shared<LabelingIndividual>(*archive.getIndiv(pick));
             new_indiv->updateChartsAndTPs(true); // OPTIM: could be skipped if we kept info from parent
     
+            #ifdef DEBUG_EVOCUBE
+            std::cout << "Picked " << pick << " from archive" << std::endl;
+            #endif
+
             auto time_before_mutation = std::chrono::steady_clock::now();     
 
             int mutation_type = pickMutation(static_cast<double>(generation)/n_generations);
