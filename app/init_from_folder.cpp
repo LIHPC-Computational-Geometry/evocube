@@ -21,19 +21,25 @@ int main(){
     // OUTPUT FOLDER
     std::string output_path = "../data/DATASET2/OM_smooth/";
 
+    bool tet_mesh_already_computed = true;
+
     //input_path = "../data/DATASET/OM_cad_meshes/";
     // "../data/2019-OctreeMeshing/input/smooth/"
 
 
-    /*input_path = "../data/2019-OctreeMeshing/input/smooth/";
+    /*
+    input_path = "../data/2019-OctreeMeshing/input/smooth/";
     input_type = TRI_OBJ;
     expected_extension = "obj";
-    output_path = "../data/DATASET2/OM_smooth/";*/
+    output_path = "../data/DATASET2/OM_smooth/";
+    //*/
 
-    /*input_path = "../../quadqs_models/";
+    /*
+    input_path = "../../quadqs_models/";
     input_type = CAD_STEP;
     expected_extension = "step";
-    output_path = "../data/DATASET2/abc/";*/
+    output_path = "../data/DATASET2/abc/";
+    //*/
 
     /*
     input_path = "../../mambo/Basic";
@@ -54,12 +60,11 @@ int main(){
     expected_extension = "step";
     output_path = "../data/DATASET2/medium_mambo/";
 
-    
+
+
+    // -------------------- INIT_FROM_FOLDER --------------------
 
     std::string path_to_preprocess_app = "../../preprocess_polycube/build/preprocess";
-
-    bool tet_mesh_already_computed = true;
-
 
     // Output names (you probably shouldn't change these)
     std::string tet_output = "/tetra.mesh";
@@ -71,13 +76,7 @@ int main(){
     std::string output_bnd = "/boundary.obj";
     std::string output_hex = "/hexes.mesh";
 
-    bool skip_first = true;
-
     for (const auto & entry : std::filesystem::directory_iterator(input_path)){
-        if (skip_first) {
-            skip_first = false;
-            continue;
-        }
         std::cout << "Dealing with: " << entry << std::endl;
         std::string base_filename = std::string(entry.path()).substr(std::string(entry.path()).find_last_of("/\\") + 1);
         std::string::size_type const p(base_filename.find_first_of('.'));

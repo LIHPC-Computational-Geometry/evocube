@@ -2,6 +2,7 @@
 #include <igl/opengl/glfw/imgui/ImGuiHelpers.h>
 #include <igl/opengl/glfw/imgui/ImGuiMenu.h>
 #include <igl/readOBJ.h>
+#include <igl/writeOBJ.h>
 #include <igl/file_dialog_save.h>
 #include <ctime>
 #include <random>
@@ -79,7 +80,7 @@ int main(int argc, char *argv[]){
 
     auto time_before_evocube = std::chrono::steady_clock::now();
 
-    int n_generations = 20;
+    int n_generations = 30;
     for (int generation=0; generation<n_generations; generation++){
 
         evo->timestamp_ ++;
@@ -93,7 +94,7 @@ int main(int argc, char *argv[]){
         new_gen.resize(max_mut);
         new_scores.resize(max_mut);
 
-        #pragma omp parallel for
+        //#pragma omp parallel for
         for (int i=0; i<max_mut; i++){
             std::cout << "Generation " << generation << ", Mutation: " << i << std::endl;
 
@@ -107,8 +108,7 @@ int main(int argc, char *argv[]){
     
             auto time_before_mutation = std::chrono::steady_clock::now();     
 
-            int mutation_type = std::rand() % 3;
-            mutation_type = pickMutation(static_cast<double>(generation)/n_generations);
+            int mutation_type = pickMutation(static_cast<double>(generation)/n_generations);
             //mutation_type = 3;
             if (mutation_type == 0) new_indiv->mutationVertexGrow();
             if (mutation_type == 1) new_indiv->mutationRemoveChart();
@@ -198,6 +198,8 @@ int main(int argc, char *argv[]){
 
     std::shared_ptr<LabelingIndividual> final_indiv = archive.getIndiv(0);
 
+    final_indiv->updateChartsAndTPs();
+    final_indiv->removeChartsWithTooFewNeighbors();
     final_indiv->updateChartsAndTPs();
     final_indiv->repairHighValenceCorner();
     final_indiv->updateChartsAndTPs();
@@ -348,6 +350,9 @@ int main(int argc, char *argv[]){
         std::cout << "Saving to:" << save_path << std::endl;
         saveFlagging(save_path + "/labeling.txt", save_labeling);
         saveFlaggingOnTets(save_path + "/labeling_on_tets.txt", save_path + "/tris_to_tets.txt", save_labeling);
+
+        saveFlagging(save_path + "/labeling_init.txt", labeling_init);
+        igl::writeOBJ(save_path + "/fast_polycube_surf.obj", def_V, F);
     }
 
     return 0;

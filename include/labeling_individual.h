@@ -229,6 +229,35 @@ public:
         }
     }
     
+    void removeChartsWithTooFewNeighbors(){
+        int max_iter = 2 * charts_.maxCoeff();
+        int curr_iter = 0;
+        while (true){
+            updateChartsAndTPs();
+            std::vector<int> candidates;
+            for (int i = 0; i < adj.size(); i++){
+                if (adj[i].size() < 4){
+                    candidates.push_back(i);
+                }
+            }
+
+            if (candidates.size() == 0) break;
+            int chart_id = candidates[0];
+
+            checkClean(charts_dirty_);
+            Eigen::VectorXi old_labeling = labeling_;
+            removeChartMutation(old_labeling, labeling_, charts_, evo_->V_, evo_->F_, 
+                                evo_->N_, evo_->TT_, chart_id);
+
+            setFlagsDirty();
+            curr_iter ++;
+            if (curr_iter > max_iter){
+                coloredPrint("removeChartsWithTooFewNeighbors fail: too many iterations", "red");
+                break;
+            }
+        }
+    }
+
     int invalidChartsScore() const {
         checkClean(charts_dirty_);
         int sum = 0;
@@ -337,7 +366,6 @@ public:
         std::vector<int> corner_uni = corner_ids; // corners without duplicates
         std::sort(corner_uni.begin(), corner_uni.end());
         corner_uni.erase(std::unique(corner_uni.begin(), corner_uni.end()), corner_uni.end());
-        std::cout << "#corners: " << corner_uni.size() << std::endl;
         return corner_uni.size();
     }
 
