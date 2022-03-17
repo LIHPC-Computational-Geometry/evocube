@@ -21,7 +21,7 @@ int main(){
     // OUTPUT FOLDER
     std::string output_path = "../data/DATASET2/OM_smooth/";
 
-    bool tet_mesh_already_computed = false;
+    bool tet_mesh_already_computed = true;
 
     //input_path = "../data/DATASET/OM_cad_meshes/";
     // "../data/2019-OctreeMeshing/input/smooth/"
@@ -34,7 +34,7 @@ int main(){
     output_path = "../data/DATASET2/OM_smooth/";
     //*/
 
-    //*
+    /*
     input_path = "../data/octreemeshes_cad_christophed/";
     input_type = TET_MESH;
     expected_extension = "mesh";
@@ -62,7 +62,7 @@ int main(){
     output_path = "../data/DATASET2/simple_mambo/";
     //*/
 
-    /*
+    //*
     input_path = "../../mambo/Medium";
     input_type = CAD_STEP;
     expected_extension = "step";
@@ -211,13 +211,14 @@ int main(){
         int result_labeling = system(command_labeling.c_str());
 
         std::string scale = "1.3";
-        std::string command_hexex = "./polycube_withHexEx " + output_mesh + " " + new_folder + output_labeling_on_tets + " " + new_folder + output_hex + " " + scale;
+        //std::string command_hexex = "./polycube_withHexEx " + output_mesh + " " + new_folder + output_labeling_on_tets + " " + new_folder + output_hex + " " + scale;
+        std::string command_hexex = "./polycube_withHexEx " + new_folder + " " + scale;
         int result_hexex = system(command_hexex.c_str());
 
         //./test_greedy ../data/DATASET2/OM_smoothscrewdriver_input_tri/boundary.obj 0
         //./polycube_withHexEx ../data/DATASET2/medium_mambo/M8/tetra.mesh ../data/DATASET2/medium_mambo/M8/labeling_on_tets.txt ../data/DATASET2/medium_mambo/M8/hexes.mesh 1.4
 
-        //break;
+        break;
     }
         
 }

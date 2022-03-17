@@ -41,7 +41,7 @@ SET(EVOCUBE_LIBS
 )
 
 add_executable(viz_tet app/viz_tet.cpp src/flagging_utils.cpp src/tet_boundary.cpp src/logging.cpp)
-target_link_libraries(viz_tet ${IGL_VIEWER_LIBS} igl::tetgen)
+target_link_libraries(viz_tet ${IGL_VIEWER_LIBS} igl::tetgen igl::png)
 
 add_executable(jacob_test app/jacob_test.cpp ${SRCFILES})
 target_link_libraries(jacob_test ${IGL_VIEWER_LIBS} ${EVOCUBE_LIBS})

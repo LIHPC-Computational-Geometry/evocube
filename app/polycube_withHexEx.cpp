@@ -6,6 +6,7 @@
 #include <iostream>
 #include <fstream>
 #include <igl/readOBJ.h>
+#include <igl/writeOBJ.h>
 #include <OpenNL_psm.h>
 #include <cassert>
 #include <filesystem>
@@ -16,6 +17,7 @@
 #include "tet_boundary.h"
 #include "disjointset.h"
 #include "logging.h"
+#include "tet_boundary.h"
 
 #define DEFAULT_SCALE			1.0
 
@@ -197,19 +199,28 @@ void revert_rescaling(Eigen::MatrixXd& V, double sizing) {
 
 int main(int argc, char* argv[]) {
 
-	if (argc < 4) {
-		std::cout << "Usage is: " << argv[0] << " tetra.mesh labeling_on_tets.txt output_hexes.mesh scale(optionnal)" << std::endl;
+	std::string folder, tetra_file, tets_labeling_file, hex_mesh_file;
+	double hexscale = DEFAULT_SCALE;
+
+	if (argc == 3){
+		folder = argv[1];
+		tetra_file = folder + "/tetra.mesh";
+		tets_labeling_file = folder + "/labeling_on_tets.txt";
+		hex_mesh_file = folder + "/hexes.mesh";
+		hexscale = std::stod(argv[2]);
+	}
+	else if (argc != 5){
+		folder = "";
+		tetra_file = argv[1];
+		tets_labeling_file = argv[2];
+		hex_mesh_file = argv[3];
+		hexscale = std::stod(argv[4]);
+	}
+	else {
+		std::cout << "Usage is: " << argv[0] << " tetra.mesh labeling_on_tets.txt output_hexes.mesh scale" << std::endl;
 		std::cout << "exemple: " << argv[0] << " ../data/S1/tetra.mesh ../data/S1/labeling_on_tets.txt ../data/S1/hexes.mesh 1." << std::endl;
 		return 1;
 	}
-
-	double hexscale = DEFAULT_SCALE;
-	std::string tetra_file			= argv[1],
-				tets_labeling_file	= argv[2],
-				hex_mesh_file		= argv[3];
-	
-	if (argc == 5)
-		hexscale = std::stod(argv[4]);
 
 	CHECK_IF_FILE_EXISTS(tetra_file)
 	CHECK_IF_FILE_EXISTS(tets_labeling_file)
@@ -245,7 +256,6 @@ int main(int argc, char* argv[]) {
 
 	revert_rescaling(V_tets, sizing);
 
-	// writeDotMeshTet("polycube_tetra.mesh",int_U,tets);
 
 	Eigen::MatrixXd corner_param(tets.rows()*4,3);
 	for(int c=0; c < tets.rows(); c++) { //for each cell (tetrahedron)
@@ -257,7 +267,37 @@ int main(int argc, char* argv[]) {
 	Eigen::MatrixXi hexes;
 	Eigen::MatrixXd V_hexes;
 	run_HexEx(tets, V_tets, corner_param, hexes, V_hexes);
-	writeDotMeshHex(hex_mesh_file,V_hexes,hexes);
+	writeDotMeshHex(hex_mesh_file, V_hexes, hexes);
+
+	// Save final polycube boundary
+	if (folder != ""){
+		writeDotMeshTet(folder + "/polycube_tets_int.mesh", int_U, tets);
+		Eigen::MatrixXd Vbi, Vbf; // initial vs final boundary
+		Eigen::MatrixXi Fb;
+		igl::readOBJ(folder + "/boundary.obj", Vbi, Fb);
+		Vbf.resize(Vbi.rows(), Vbi.cols());
+
+		BndToTetConverter conv(folder + "/tris_to_tets.txt");
+
+		for (int i=0; i<Fb.rows(); i++){
+			int f_tet = conv.table_(i);
+			int tet_id = f_tet / 4;
+			int f_in_tet = f_tet % 4;
+
+			std::vector<std::vector<int>> corres = {
+				{1, 3, 2},
+				{0, 2, 3},
+				{0, 3, 1},
+				{0, 1, 2}	
+			};
+			Vbf.row(Fb(i, 0)) = int_U.row(tets(tet_id, corres[f_in_tet][0]));
+			Vbf.row(Fb(i, 1)) = int_U.row(tets(tet_id, corres[f_in_tet][1]));
+			Vbf.row(Fb(i, 2)) = int_U.row(tets(tet_id, corres[f_in_tet][2]));
+		}
+
+		igl::writeOBJ(folder + "/polycube_surf_int.obj", Vbf, Fb);
+
+	}
 
 	return 0;
 }

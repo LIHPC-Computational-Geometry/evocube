@@ -2,7 +2,9 @@
 #include <igl/opengl/ViewerCore.h>
 #include <igl/opengl/glfw/imgui/ImGuiHelpers.h>
 #include <igl/opengl/glfw/imgui/ImGuiMenu.h>
+#include <igl/per_face_normals.h>
 #include <igl/readOFF.h>
+#include <igl/png/readPNG.h>
 #include <filesystem>
 #include <imgui.h>
 
@@ -183,6 +185,55 @@ int main(int argc, char *argv[]){
                 catch (...) {
                     std::cout << "Reading error !!" << std::endl;
                 }*/
+            }
+
+            if (ImGui::Button("Show polycube")){
+                viewer.data().clear();
+
+                Eigen::MatrixXd V_poly;
+                igl::readOBJ(folder + "/boundary.obj", V, F);
+                igl::readOBJ(folder + "/polycube_surf_int.obj", V_poly, F);
+                Eigen::MatrixXd N;
+                igl::per_face_normals(V_poly, F, N);
+
+                Eigen::MatrixXd V_dupl(F.rows() * 3, 3);
+                Eigen::MatrixXi F_dupl(F.rows(), 3);
+                for (int f = 0; f<F.rows(); f++) {
+                    F_dupl.row(f) << 3 * f, 3 * f + 1, 3 * f + 2;
+                    V_dupl.row(3 * f) = V.row(F(f, 0));
+                    V_dupl.row(3 * f + 1) = V.row(F(f, 1));
+                    V_dupl.row(3 * f + 2) = V.row(F(f, 2));
+                }
+
+                Eigen::MatrixXd U(3 * F.rows(), 2);
+                Eigen::VectorXi axes(F.rows());
+                for (int f = 0; f<F.rows(); f++) {
+                    Eigen::RowVector3d n = N.row(f);
+                    if (std::abs(std::abs(n(0)) - 1) < 1E-8) axes(f) = 0;
+                    else if (std::abs(std::abs(n(1)) - 1) < 1E-8) axes(f) = 1;
+                    else if (std::abs(std::abs(n(2)) - 1) < 1E-8) axes(f) = 2;
+                    
+                    for (int fc=0; fc<3; fc++){
+                        for (int d=0; d<2; d++) {
+                            double u = V_poly(F(f, fc), (d + axes(f) + 1) % 3);
+                            u /= 1;
+                            U(3*f+fc, d) = u;
+                        }
+                    }
+                }
+                viewer.data().set_mesh(V_dupl, F_dupl);
+                viewer.data().set_uv(U);
+                viewer.data().show_lines = false;
+                viewer.data().set_normals(-N);
+                viewer.data().show_texture = true;
+                Eigen::Matrix<unsigned char,Eigen::Dynamic,Eigen::Dynamic> R,G,B,A;
+                igl::png::readPNG("../data/grey_checkerboard.png",R,G,B,A);
+                viewer.data().set_texture(R,G,B,A);
+
+                Eigen::VectorXi labeling = openFlagging(folder + "/labeling.txt", F.rows());
+                Eigen::MatrixXd colors = colorsFromFlagging(labeling);
+                viewer.data().set_colors(colors);
+
             }
 
 
