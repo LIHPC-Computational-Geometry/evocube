@@ -21,7 +21,7 @@ int main(){
     // OUTPUT FOLDER
     std::string output_path = "../data/DATASET2/OM_smooth/";
 
-    bool tet_mesh_already_computed = true;
+    bool tet_mesh_already_computed = false;
 
     //input_path = "../data/DATASET/OM_cad_meshes/";
     // "../data/2019-OctreeMeshing/input/smooth/"
@@ -32,6 +32,13 @@ int main(){
     input_type = TRI_OBJ;
     expected_extension = "obj";
     output_path = "../data/DATASET2/OM_smooth/";
+    //*/
+
+    //*
+    input_path = "../data/octreemeshes_cad_christophed/";
+    input_type = TET_MESH;
+    expected_extension = "mesh";
+    output_path = "../data/DATASET2/OM_cad/";
     //*/
 
     /*
@@ -55,11 +62,12 @@ int main(){
     output_path = "../data/DATASET2/simple_mambo/";
     //*/
 
+    /*
     input_path = "../../mambo/Medium";
     input_type = CAD_STEP;
     expected_extension = "step";
     output_path = "../data/DATASET2/medium_mambo/";
-
+    //*/
     
     // -------------------- INIT_FROM_FOLDER --------------------
 
@@ -170,7 +178,7 @@ int main(){
                 
                 std::string png_screenshot = std::string(entry.path())
                                             .substr(0, std::string(entry.path()).find_last_of("/\\") + 1)
-                                            + "../OM_cad_screenshots/" 
+                                            + "../octreemeshes_cad_screenshots/" 
                                             + file_without_mesh
                                             + ".png";
                 std::filesystem::copy(png_screenshot, new_folder + "/screenshot.png");
@@ -198,7 +206,6 @@ int main(){
         
         std::string logs_path = new_folder + logs_file;
         resetLogFile(logs_path);
-        fillLogInfo("test", logs_path, "0");
 
         std::string command_labeling = "./test_greedy " + boundary_obj_path + " " + new_folder;
         int result_labeling = system(command_labeling.c_str());
@@ -210,7 +217,7 @@ int main(){
         //./test_greedy ../data/DATASET2/OM_smoothscrewdriver_input_tri/boundary.obj 0
         //./polycube_withHexEx ../data/DATASET2/medium_mambo/M8/tetra.mesh ../data/DATASET2/medium_mambo/M8/labeling_on_tets.txt ../data/DATASET2/medium_mambo/M8/hexes.mesh 1.4
 
-        break;
+        //break;
     }
         
 }
