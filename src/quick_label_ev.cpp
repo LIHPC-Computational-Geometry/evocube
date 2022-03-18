@@ -84,6 +84,7 @@ Eigen::MatrixXd QuickLabelEv::LDLTDeformation(const Eigen::VectorXi& labeling) c
             std::cout << "NoConvergence" << std::endl;
         if(solver.info() == Eigen::InvalidInput) 
             std::cout << "InvalidInput" << std::endl;
+		//x = Eigen::VectorXd::Constant(x.rows(), 10e6);
     }
 	
 	Eigen::MatrixXd def_V(N_vs, 3);
@@ -94,7 +95,7 @@ Eigen::MatrixXd QuickLabelEv::LDLTDeformation(const Eigen::VectorXi& labeling) c
 	double totaltime = double(std::chrono::duration_cast<std::chrono::milliseconds> (solveend - begin).count()) / 1000;
 	double buildtime = double(std::chrono::duration_cast<std::chrono::milliseconds> (buildend - begin).count()) / 1000;
 	double solvetime = double(std::chrono::duration_cast<std::chrono::milliseconds> (solveend - buildend).count()) / 1000;
-	std::cerr << "LDLT build + solve: " << buildtime << " + " << solvetime << " = " << totaltime << "sec." << std::endl;
+	//std::cerr << "LDLT build + solve: " << buildtime << " + " << solvetime << " = " << totaltime << "sec." << std::endl;
 
 	#ifdef DEBUG_QUICK_LABEL_EV
 	//igl::writeOBJ("../debug_quick_label_ev.obj", def_V, F_);
@@ -183,7 +184,7 @@ double QuickLabelEv::evaluate(const Eigen::VectorXi& labeling, int& n_fail_inver
     Eigen::VectorXd disto;
     computeDisto(V_, def_V, F_, N_, N_def, disto);
 
-	//disto = disto * disto; // OPTIONAL
+	disto = disto * disto; // OPTIONAL
 	    
     double final_disto = integrateDistortion(A_, disto);
 
@@ -195,6 +196,7 @@ double QuickLabelEv::evaluate(const Eigen::VectorXi& labeling, int& n_fail_inver
 		}
 	}
 
+	//double invert_coeff = 0 * 100000.0 * 1.0 / F_.rows();
 	double invert_coeff = 100000.0 * 1.0 / F_.rows();
 	final_disto += invert_coeff * static_cast<double>(n_fail_invert);
 	

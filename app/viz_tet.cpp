@@ -193,8 +193,9 @@ int main(int argc, char *argv[]){
                 Eigen::MatrixXd V_poly;
                 igl::readOBJ(folder + "/boundary.obj", V, F);
                 igl::readOBJ(folder + "/polycube_surf_int.obj", V_poly, F);
-                Eigen::MatrixXd N;
-                igl::per_face_normals(V_poly, F, N);
+                Eigen::MatrixXd N_poly, N;
+                igl::per_face_normals(V_poly, F, N_poly);
+                igl::per_face_normals(V, F, N);
 
                 Eigen::MatrixXd V_dupl(F.rows() * 3, 3);
                 Eigen::MatrixXi F_dupl(F.rows(), 3);
@@ -208,7 +209,7 @@ int main(int argc, char *argv[]){
                 Eigen::MatrixXd U(3 * F.rows(), 2);
                 Eigen::VectorXi axes(F.rows());
                 for (int f = 0; f<F.rows(); f++) {
-                    Eigen::RowVector3d n = N.row(f);
+                    Eigen::RowVector3d n = N_poly.row(f);
                     if (std::abs(std::abs(n(0)) - 1) < 1E-8) axes(f) = 0;
                     else if (std::abs(std::abs(n(1)) - 1) < 1E-8) axes(f) = 1;
                     else if (std::abs(std::abs(n(2)) - 1) < 1E-8) axes(f) = 2;
@@ -242,7 +243,7 @@ int main(int argc, char *argv[]){
     
     };
 
-    viewer.core().lighting_factor = 0.7;
+    //viewer.core().lighting_factor = 0.7;
     viewer.core().set_rotation_type(igl::opengl::ViewerCore::ROTATION_TYPE_TRACKBALL);
     viewer.core().background_color = Eigen::Vector4f(255.0/255.0, 255.0/255.0, 255.0/255.0, 1.0);
     viewer.launch();

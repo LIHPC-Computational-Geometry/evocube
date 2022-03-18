@@ -37,7 +37,9 @@ public:
 	};*/
 
 	virtual ~QuickLabelEv(){
+		#ifdef VERBOSE_BIRTH_DEATH
         coloredPrint("An Evaluator kicked the bucket...", "yellow");
+		#endif
     }
 
 private:

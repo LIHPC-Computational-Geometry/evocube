@@ -14,12 +14,16 @@ class LabelingIndividual {
 public:
     LabelingIndividual(std::shared_ptr<Evocube> evo, std::shared_ptr<const QuickLabelEv> qle, Eigen::VectorXi labeling) // first generation only
         : evo_(evo), qle_(qle), labeling_(labeling){ 
+        #ifdef VERBOSE_BIRTH_DEATH
         coloredPrint("An individual has come into existence...", "green");
+        #endif
         prev_labeling_ = labeling;
         timestamps_ = Eigen::VectorXi::Zero(labeling.rows());
     }
     LabelingIndividual(const LabelingIndividual& indiv) : evo_(indiv.evo_), qle_(indiv.qle_){
+        #ifdef VERBOSE_BIRTH_DEATH
         coloredPrint("An individual rose from the shadows...", "green");
+        #endif
         labeling_ = indiv.getLabeling();
         prev_labeling_ = labeling_;
         timestamps_ = indiv.getTimestamps();
@@ -27,7 +31,9 @@ public:
 
     LabelingIndividual(const LabelingIndividual& parent1, const LabelingIndividual& parent2)
         : evo_(parent1.evo_), qle_(parent1.qle_) { // Cross operator
+        #ifdef VERBOSE_BIRTH_DEATH
         coloredPrint("An individual was brought into the world...", "green");
+        #endif
         labeling_ = parent1.getLabeling();
         timestamps_ = parent1.getTimestamps();
 
@@ -45,7 +51,9 @@ public:
     }
 
     virtual ~LabelingIndividual(){
+        #ifdef VERBOSE_BIRTH_DEATH
         coloredPrint("An individual breathed his last...", "yellow");
+        #endif
     }
     
     Eigen::VectorXi getLabeling() const {return labeling_;}

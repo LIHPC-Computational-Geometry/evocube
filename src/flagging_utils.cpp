@@ -60,13 +60,14 @@ Eigen::MatrixXd colorsFromFlagging(const Eigen::VectorXi& flagging){
     color_map.row(3) = Eigen::RowVector3d(0.7, 0.7, 0.7);
 
 
-    double diff = 70.0;
+    double diff = 40.0;
     color_map.row(0) = Eigen::RowVector3d(196.0/255, 32.0/255, 33.0/255);
     //color_map.row(1) = Eigen::RowVector3d(166.0/255, 15.0/255, 16.0/255);
     color_map.row(2) = Eigen::RowVector3d(235.0/255, 245.0/255, 238.0/255);
     color_map.row(2) = Eigen::RowVector3d(235.0/255, 235.0/255, 235.0/255);
     //color_map.row(3) = Eigen::RowVector3d(185.0/255, 195.0/255, 198.0/255);
     color_map.row(4) = Eigen::RowVector3d(5.0/255, 74.0/255, 145.0/255);
+    color_map.row(4) = Eigen::RowVector3d(5.0/255, 90.0/255, 195.0/255);
     //color_map.row(5) = Eigen::RowVector3d(0.0/255, 44.0/255, 115.0/255);
 
     // German theme
@@ -74,9 +75,17 @@ Eigen::MatrixXd colorsFromFlagging(const Eigen::VectorXi& flagging){
     //color_map.row(2) = Eigen::RowVector3d(221.0/255, 0.0/255, 0.0/255);
     //color_map.row(4) = Eigen::RowVector3d(255.0/255, 206.0/255, 0.0/255);
 
+
+    // updated theme
+    /*
+    color_map.row(0) = Eigen::RowVector3d(255.0/255, 15.0/255, 60.0/255);
+    color_map.row(2) = Eigen::RowVector3d(245.0/255, 245.0/255, 245.0/255);
+    color_map.row(4) = Eigen::RowVector3d(0.0/255, 130.0/255, 255.0/255);
+    //*/
+
     color_map.row(1) = color_map.row(0).array() - 0.9 * diff/255.0;
-    color_map.row(3) = color_map.row(2).array() - 0.8 * diff/255.0;
-    color_map.row(5) = color_map.row(4).array() - 0.5 * diff/255.0;
+    color_map.row(3) = color_map.row(2).array() - 0.6 * diff/255.0;
+    color_map.row(5) = color_map.row(4).array() - 0.7 * diff/255.0;
 
     color_map = color_map.array() * 1.1;
 

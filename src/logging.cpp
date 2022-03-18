@@ -57,6 +57,10 @@ void fillLogInfo(std::string tag1, std::string tag2, std::string filepath, std::
     writeJSON(j, filepath);
 }
 
+void fillLogInfo(std::string tag1, std::string tag2, std::string filepath, double value){
+    fillLogInfo(tag1, tag2, filepath, std::to_string(value));
+}
+
 void removeLogInfo(std::string tag, std::string filepath){
     nlohmann::json j = readJSON(filepath);
     j.erase(tag);
@@ -96,6 +100,6 @@ void printLog(std::string filepath){
 
 double measureTime(std::chrono::time_point<std::chrono::steady_clock> t1,
                    std::chrono::time_point<std::chrono::steady_clock> t2){
-    return static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds> 
-                              (t2 - t1).count()) / 1000.0;
+    return static_cast<double>(std::chrono::duration_cast<std::chrono::microseconds> 
+                              (t2 - t1).count()) / 1000000.0;
 }

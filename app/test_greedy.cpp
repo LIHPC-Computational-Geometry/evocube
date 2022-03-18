@@ -21,6 +21,9 @@
 
 //#define DEBUG_EVOCUBE
 
+//#define PRINT_EVOCUBE_TIMINGS
+//#define VERBOSE_BIRTH_DEATH
+
 #define READ_DOT_MESH
 #ifdef READ_DOT_MESH
 #include "mesh_io.h" // requires tetgen
@@ -34,6 +37,8 @@ int main(int argc, char *argv[]){
     bool show_ui = (argc <= 2);
 
     std::srand(std::time(nullptr));
+
+    auto time_before_init = std::chrono::steady_clock::now();
 
     Eigen::MatrixXd V;
     Eigen::MatrixXi F;
@@ -50,14 +55,11 @@ int main(int argc, char *argv[]){
     Eigen::VectorXi labeling_init = graphcutFlagging(V, F, evo->N_, evo->TT_, compact_coeff, fidelity_coeff);
     std::shared_ptr<LabelingIndividual> ancestor = std::make_shared<LabelingIndividual>(LabelingIndividual(evo, qle, labeling_init));
 
-    std::cout << "Fix init... " << std::endl;
     ancestor->updateChartsAndTPs();
     //ancestor->repairHighValenceCorner();
     ancestor->updateChartsAndTPs();
     ancestor->repairOppositeLabels();
     ancestor->updateChartsAndTPs();
-
-    std::cout << "Unspike init... " << std::endl;
 
     ancestor->repairUnspikeLabeling();
     ancestor->updateChartsAndTPs(true);
@@ -81,14 +83,21 @@ int main(int argc, char *argv[]){
         else return 3;
     };
 
+    double sum_time_create_indiv = 0;
+    double sum_time_cross = 0;
+    double sum_time_mut = 0;
+    double sum_time_chart = 0;
+    double sum_time_archive = 0;
+    double sum_time_eval = 0;
+
     auto time_before_evocube = std::chrono::steady_clock::now();
 
-    int n_generations = 5;
+    int n_generations = 30;
+    int max_mut = 100;
     for (int generation=0; generation<n_generations; generation++){
 
         evo->timestamp_ ++;
 
-        int max_mut = 100;
         Archive<std::shared_ptr<LabelingIndividual>> gen_archive(5);
 
         std::vector<std::shared_ptr<LabelingIndividual>> new_gen;
@@ -102,22 +111,13 @@ int main(int argc, char *argv[]){
             std::cout << "Generation " << generation << ", Mutation: " << i << std::endl;
 
             auto time_new_indiv = std::chrono::steady_clock::now();    
-            //LabelingIndividual new_indiv(*best_indiv);
-            //std::shared_ptr<LabelingIndividual> new_indiv = std::make_shared<LabelingIndividual>(LabelingIndividual(*best_indiv));
-            
             int pick = archive.probabilisticIndividual();
-
             std::shared_ptr<LabelingIndividual> new_indiv = std::make_shared<LabelingIndividual>(*archive.getIndiv(pick));
             new_indiv->updateChartsAndTPs(true); // OPTIM: could be skipped if we kept info from parent
-    
-            #ifdef DEBUG_EVOCUBE
-            std::cout << "Picked " << pick << " from archive" << std::endl;
-            #endif
 
             auto time_before_mutation = std::chrono::steady_clock::now();     
 
             int mutation_type = pickMutation(static_cast<double>(generation)/n_generations);
-            //mutation_type = 3;
             if (mutation_type == 0) new_indiv->mutationVertexGrow();
             if (mutation_type == 1) new_indiv->mutationRemoveChart();
             if (mutation_type == 2) new_indiv->mutationGreedyPath();
@@ -133,39 +133,31 @@ int main(int argc, char *argv[]){
             auto time_after_charts = std::chrono::steady_clock::now();
             
             double new_score = evaluator.evaluate(*new_indiv);
+            new_gen[i] = new_indiv;
+            new_scores[i] = new_score;
 
             auto time_after_eval = std::chrono::steady_clock::now();
 
-            //gen_archive.insert(new_indiv, new_score);
-            new_gen[i] = new_indiv;
-            new_scores[i] = new_score;
-            
-            /*if (new_score < current_score){
-                current_score = new_score; 
-                best_indiv = new_indiv;
-                mut_count ++;
-            }*/
-
-            auto time_after_archive = std::chrono::steady_clock::now();
-            /*double time_create_indiv = double(std::chrono::duration_cast<std::chrono::milliseconds> (time_before_mutation - time_new_indiv).count()) / 1000;
-            double time_mut = double(std::chrono::duration_cast<std::chrono::milliseconds> (time_after_mutation - time_before_mutation).count()) / 1000;
-            double time_chart = double(std::chrono::duration_cast<std::chrono::milliseconds> (time_after_charts - time_after_mutation).count()) / 1000;
-            double totaltime = double(std::chrono::duration_cast<std::chrono::milliseconds> (time_after_charts - time_before_mutation).count()) / 1000;
-            */
             double time_create_indiv = measureTime(time_new_indiv, time_before_mutation);
             double time_mut = measureTime(time_before_mutation, time_after_mutation);
             double time_chart = measureTime(time_after_mutation, time_after_charts);
             double time_eval = measureTime(time_after_charts, time_after_eval);
-            double time_archive = measureTime(time_after_eval, time_after_archive);
-            double totaltime = measureTime(time_new_indiv, time_after_archive);
+            double totaltime = measureTime(time_new_indiv, time_after_eval);
 
+            // TODO is this ok in //?
+            sum_time_create_indiv += time_create_indiv;
+            sum_time_mut += time_mut;
+            sum_time_chart += time_chart;
+            sum_time_eval += time_eval;
+
+            #ifdef PRINT_EVOCUBE_TIMINGS
             std::cout << "Individual mutation, time repartition:" << std::endl;
             std::cout << "\tCreation \t" << time_create_indiv << std::endl;
             std::cout << "\tMutation \t" << time_mut << std::endl;
             std::cout << "\tCharts   \t" << time_chart << std::endl;
             std::cout << "\tEval.    \t" << time_eval << std::endl;
-            std::cout << "\tArchive  \t" << time_archive << std::endl;
             std::cout << "\tTotal:   \t" << totaltime << std::endl;
+            #endif
         }
 
         for (int i=0; i<new_gen.size(); i++){
@@ -177,6 +169,8 @@ int main(int argc, char *argv[]){
         int n_cross = 10;
         for (int i=0; i<n_cross; i++){
             std::cout << "Generation " << generation << ", Crossing: " << i << std::endl;
+
+            auto time_before_cross = std::chrono::steady_clock::now();    
             int p1 = gen_archive.probabilisticIndividual();
             int p2 = gen_archive.probabilisticIndividual();
             if (p1 == p2) continue;
@@ -184,24 +178,41 @@ int main(int argc, char *argv[]){
             std::shared_ptr<LabelingIndividual> child = std::make_shared<LabelingIndividual>(
                                                                 LabelingIndividual(*gen_archive.getIndiv(p1), 
                                                                                    *gen_archive.getIndiv(p2)));
+
+            auto time_after_cross = std::chrono::steady_clock::now();    
+
             child->updateChartsAndTPs();
             child->repairUnspikeLabeling();
             child->updateChartsAndTPs(true); // TPs not needed?
             child->updateTimestamps(); // not needed?
+
+            auto time_after_charts = std::chrono::steady_clock::now();   
+
             double new_score = evaluator.evaluate(*child);
+            auto time_after_eval = std::chrono::steady_clock::now();   
+
             gen_archive.insert(child, new_score);
+            auto time_after_archive = std::chrono::steady_clock::now();   
+
+
+            sum_time_cross += measureTime(time_before_cross, time_after_cross);
+            sum_time_chart += measureTime(time_after_cross, time_after_charts);
+            sum_time_eval += measureTime(time_after_charts, time_after_eval);
+            sum_time_archive += measureTime(time_after_eval, time_after_archive);
         }
 
+        auto time_before_archive = std::chrono::steady_clock::now();
         // Insert generation into general archive
         for (int id=0; id<gen_archive.getSize(); id++){
             archive.insert(gen_archive.getIndiv(id), gen_archive.getScore(id));
         }
-
         auto time_after_archive = std::chrono::steady_clock::now();
-        double time_insert_archive = measureTime(time_after_mutations, time_after_archive);
-        std::cout << "End of generation, additional time:" << std::endl;
-        std::cout << "\tGeneral archive \t" << time_insert_archive << std::endl;
+        sum_time_archive += measureTime(time_before_archive, time_after_archive);
+        //std::cout << "End of generation, additional time:" << std::endl;
+        //std::cout << "\tGeneral archive \t" << time_insert_archive << std::endl;
     }
+
+    auto time_after_evocube = std::chrono::steady_clock::now();
 
 
     std::shared_ptr<LabelingIndividual> final_indiv = archive.getIndiv(0);
@@ -220,8 +231,10 @@ int main(int argc, char *argv[]){
 
     Eigen::MatrixXd threshold_colors = qle->distoAboveThreshold(final_indiv->getLabeling(), 100.0);
 
-    auto time_after_evocube = std::chrono::steady_clock::now();
+    auto time_after_post = std::chrono::steady_clock::now();
+    double time_init_evo = measureTime(time_before_init, time_before_evocube);
     double time_evocube = measureTime(time_before_evocube, time_after_evocube);
+    double time_post_evo = measureTime(time_after_evocube, time_after_post);
     coloredPrint("Evocube time: " + std::to_string(time_evocube), "cyan");
 
     // --- VISUALIZATION ---
@@ -324,6 +337,15 @@ int main(int argc, char *argv[]){
 
                 ImGui::Checkbox("Flip label normals", &flip_label_normals);
 
+                ImGui::Separator();
+
+                if (ImGui::Button("Quick save labeling", ImVec2(-1, 0))){
+                    std::string folder = input_tris.substr(0, input_tris.find_last_of("/\\") + 1);
+                    folder = folder.substr(0, folder.find_last_of("/\\") + 1);
+                    Eigen::VectorXi save_labeling = final_indiv->getLabeling();
+                    saveFlagging(folder + "/labeling.txt", save_labeling);
+                    saveFlaggingOnTets(folder + "/labeling_on_tets.txt", folder + "/tris_to_tets.txt", save_labeling);
+                }
                 
                 if (ImGui::Button("Quick hexex")){
                     std::string folder = input_tris.substr(0, input_tris.find_last_of("/\\") + 1);
@@ -378,9 +400,23 @@ int main(int argc, char *argv[]){
         std::time_t start_timet = std::chrono::system_clock::to_time_t(start_time);
         fillLogInfo("FinishTime", logs_path, std::ctime(&start_timet));
 
+        // ALL THESE ARE IN CPU TIME! Since it's //, the sum is > to time_evocube
+        fillLogInfo("Timing", "CreateIndiv", logs_path, sum_time_create_indiv);
+        fillLogInfo("Timing", "Cross", logs_path, sum_time_cross);
+        fillLogInfo("Timing", "Mutations", logs_path, sum_time_mut);
+        fillLogInfo("Timing", "ChartsAndTps", logs_path, sum_time_chart);
+        fillLogInfo("Timing", "Archive", logs_path, sum_time_archive);
+        fillLogInfo("Timing", "Eval", logs_path, sum_time_eval);
+
+        // Real-world time
+        fillLogInfo("Timing", "PreGenetics", logs_path, time_init_evo);
+        fillLogInfo("Timing", "Genetics", logs_path, time_evocube);
+        fillLogInfo("Timing", "PostGenetics", logs_path, time_post_evo);
+
+        fillLogInfo("#generations", logs_path, std::to_string(n_generations));
+        fillLogInfo("#mutations_per_gen", logs_path, std::to_string(max_mut));
 
         // TODO fill logs:
-        // all timing info
         // mesh info
         // evaluator info for Individuals
         // hexes info

@@ -39,7 +39,7 @@ Eigen::VectorXi graphcutFlagging(const Eigen::MatrixXd& V, const Eigen::MatrixXi
         if (locked_flags.minCoeff() == locked_flags.maxCoeff()){
             coloredPrint("Warning in Graph-cut flagging: locked on a single color.", "yellow");
         }
-        std::cout << "Locked percentage: " << 100*((locked_flags.array() != -1).count())/F.rows() << std::endl;
+        //std::cout << "Locked percentage: " << 100*((locked_flags.array() != -1).count())/F.rows() << std::endl;
         for (int i = 0; i < num_elem; i++){
             if (locked_flags(i) == -1) continue;
             for (int l = 0; l < num_labels; l++ ){

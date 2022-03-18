@@ -209,7 +209,7 @@ int main(int argc, char* argv[]) {
 		hex_mesh_file = folder + "/hexes.mesh";
 		hexscale = std::stod(argv[2]);
 	}
-	else if (argc != 5){
+	else if (argc == 5){
 		folder = "";
 		tetra_file = argv[1];
 		tets_labeling_file = argv[2];

@@ -22,6 +22,9 @@ int main(){
     std::string output_path = "../data/DATASET2/OM_smooth/";
 
     bool tet_mesh_already_computed = true;
+    bool skip_first = false;
+    bool skip_if_folder_exists = false;
+    bool break_after_first = true;
 
     //input_path = "../data/DATASET/OM_cad_meshes/";
     // "../data/2019-OctreeMeshing/input/smooth/"
@@ -48,7 +51,7 @@ int main(){
     output_path = "../data/DATASET2/abc/";
     //*/
 
-    /*
+    //*
     input_path = "../../mambo/Basic";
     input_type = CAD_STEP;
     expected_extension = "step";
@@ -62,7 +65,7 @@ int main(){
     output_path = "../data/DATASET2/simple_mambo/";
     //*/
 
-    //*
+    /*
     input_path = "../../mambo/Medium";
     input_type = CAD_STEP;
     expected_extension = "step";
@@ -84,7 +87,6 @@ int main(){
     std::string output_hex = "/hexes.mesh";
     std::string logs_file = "/logs.json";
 
-    bool skip_first = false;
 
     for (const auto & entry : std::filesystem::directory_iterator(input_path)){
         if (skip_first){
@@ -101,6 +103,11 @@ int main(){
         std::string new_folder = output_path + file_without_extension;
         std::string output_mesh = new_folder + tet_output;
         std::string boundary_obj_path = new_folder + output_bnd;
+
+        if (skip_if_folder_exists && std::filesystem::is_directory(new_folder)){
+            std::cout << "Folder already exists, skipping " << new_folder << std::endl;
+            continue;
+        }
 
         if (!tet_mesh_already_computed){
             if (std::filesystem::is_directory(new_folder)){
@@ -218,7 +225,10 @@ int main(){
         //./test_greedy ../data/DATASET2/OM_smoothscrewdriver_input_tri/boundary.obj 0
         //./polycube_withHexEx ../data/DATASET2/medium_mambo/M8/tetra.mesh ../data/DATASET2/medium_mambo/M8/labeling_on_tets.txt ../data/DATASET2/medium_mambo/M8/hexes.mesh 1.4
 
-        break;
+        if (break_after_first){
+            std::cout << "BREAKING" << std::endl;
+            break;
+        }
     }
         
 }

@@ -70,7 +70,7 @@ void computeDisto(const Eigen::MatrixXd& V1,
         double s1 = svd.singularValues()(0);
         double s2 = svd.singularValues()(1);
         disto(f_id) =  s1 * s2 + 1.0 / (s1 * s2) - 2.0;
-        //disto(f_id) =  s1 / s2 + s2 / s1 - 2.0;
+        disto(f_id) +=  s1 / s2 + s2 / s1 - 2.0;
     }
 }
 
@@ -79,7 +79,7 @@ double integrateDistortion(const Eigen::VectorXd& A,
 
     int n_inf = disto.array().isInf().count();
 
-    std::cout << "infinite values: " << n_inf << std::endl;
+    //std::cout << "infinite values: " << n_inf << std::endl;
 
     return (A * disto).sum() / A.sum() + static_cast<double>(n_inf * 10000);
 

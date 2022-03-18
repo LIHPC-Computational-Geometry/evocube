@@ -17,7 +17,7 @@ public:
         invalid_score = indiv.invalidityScore();
         double compact_score = static_cast<double>(indiv.countCorners());
         double fidelity_score = indiv.fidelityScore();
-        return  fast_poly_score + 100.0 * invalid_score + compact_score + 10.0 * fidelity_score;
+        return  fast_poly_score + 100.0 * invalid_score + compact_score + 10000.0 * fidelity_score;
     }
 
     double evaluate(const LabelingIndividual& indiv) const {
