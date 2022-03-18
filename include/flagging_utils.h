@@ -3,10 +3,23 @@
 #include <Eigen/Core>
 #include <iostream>
 #include <fstream>
+#include <cassert>
 
 #include "logging.h"
 
 Eigen::MatrixXd axesMatrix();
+
+inline int flagToAxis(const int flag){ //just use flag/2 instead
+    assert(( (0<=flag) && (flag<=5) ));
+    //  flag | axis
+    //  +X=0 | X=0
+    //  -X=1 | X=0
+    //  +Y=2 | Y=1
+    //  -Y=3 | Y=1
+    //  +Z=4 | Z=2
+    //  -Z=5 | Z=2
+    return flag/2;//integer division
+}
 
 int oppositeLabel(int label);
 

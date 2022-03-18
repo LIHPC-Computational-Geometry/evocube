@@ -10,8 +10,6 @@
 // .mesh documentation : https://www.ljll.math.upmc.fr/frey/logiciels/Docmedit.dir/index.html
 // (spelling mistake in HexaHedra)
 
-void writeDotMeshTet(std::string filename, const Eigen::MatrixXd& V, const Eigen::MatrixXi& tets);
-
 void writeDotMeshTet(std::string filename, const Eigen::MatrixXd& V, const Eigen::MatrixXi& tets){
     // tets : matrix of size (n_tets, 4)
 
@@ -41,7 +39,6 @@ void writeDotMeshTet(std::string filename, const Eigen::MatrixXd& V, const Eigen
     out_mesh.close();
 }
 
-void readDotMeshTet(std::string input_tets, Eigen::MatrixXd &V, Eigen::MatrixXi &tets);
 void readDotMeshTet(std::string input_tets, Eigen::MatrixXd &V, Eigen::MatrixXi &tets){
     
     // Note: INDICES START AT 1 !!
@@ -319,6 +316,69 @@ void readDotMeshHex(std::string input_hex, Eigen::MatrixXd &V, Eigen::MatrixXi &
             Eigen::RowVectorXi row(8);
             row << a-1, b-1, c-1, d-1, e-1, f-1, g-1, h-1;
             hexes.row(i) = row;
+            input_file >> a; // discard ref element
+        }
+    }
+    input_file.close();
+}
+
+void readDotMeshEdges(std::string input_edges, Eigen::MatrixXd &V, Eigen::MatrixXi &edges) {
+    std::ifstream input_file(input_edges);
+
+    if (input_file.fail()){
+        std::cout << "\033[31mWarning\033[0m: no feature edges.\n" << std::endl;
+        V = Eigen::MatrixXd(0, 3);
+        edges = Eigen::MatrixXi(0, 2);
+    }
+
+    // TODO vertices part is a copy past from readTet function, factorize ?
+    std::string header;
+    for (int i=0; i<4; i++){
+        input_file >> header;
+    }
+
+    std::string section_name;
+    input_file >> section_name;
+
+    if (section_name != "Vertices"){
+        std::cout << "Error : expected Vertices" << std::endl;
+    }
+
+    int n_vertices;
+    input_file >> n_vertices;
+    std::cout << n_vertices << " vertices" << std::endl;
+    V.resize(n_vertices, 3);
+    for (int i=0; i<n_vertices; i++){
+        double a,b,c;
+        input_file >> a;
+        input_file >> b;
+        input_file >> c;
+        V.row(i) = Eigen::RowVector3d(a, b, c);
+        input_file >> a; // discard ref element
+    }
+
+    int discarded = 0;
+    input_file >> section_name;
+    while (section_name != "Edges" && input_file >> section_name){
+        discarded ++;
+    }
+
+    std::cout << discarded << " elements discarded" << std::endl;
+
+    if (section_name != "Edges"){
+        std::cout << "Error : expected Edges" << std::endl;
+    }
+    else {
+        int n_edges;
+        input_file >> n_edges;
+        std::cout << n_edges << " edges" << std::endl;
+        edges.resize(n_edges, 2);
+
+        for (int i=0; i<n_edges; i++){
+            int a,b;
+            input_file >> a;
+            input_file >> b;
+            edges.row(i) = Eigen::RowVector2i(a-1, b-1);
             input_file >> a; // discard ref element
         }
     }
