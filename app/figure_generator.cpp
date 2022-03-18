@@ -1,7 +1,6 @@
 /**
- * @brief Generates most figures found in paper. See FIG_A, FIG_B, etc.
- * @date 2021-10-12
- * 
+ * @brief Generates figures from a processed mesh. see FIGURE possible values
+ * @date 2022-03-18
  */
 
 //file IO
@@ -30,13 +29,17 @@
 #include "flagging_utils.h"
 #include "mesh_io.h"
 
-#define BOUNDARY_PATH (saving_subfolder + mesh_name + "/boundary.obj")
-#define POLYCUBE_PATH (saving_subfolder + mesh_name + "/polycube_surf_int.obj")
-#define FLAGGING_PATH (saving_subfolder + mesh_name + "/labeling.txt")
+#define PICTURES_WIDTH  360
+#define PICTURES_HEIGHT 360
 
-int main(int argc, char *argv[]){
+#define BOUNDARY_PATH       (saving_subfolder + mesh_name + "/boundary.obj")
+#define POLYCUBE_PATH       (saving_subfolder + mesh_name + "/polycube_surf_int.obj")
+#define FLAGGING_PATH       (saving_subfolder + mesh_name + "/labeling.txt")
+#define FEATURE_EDGES_PATH  (saving_subfolder + mesh_name + "/input_edges.mesh")
 
-    std::string mesh_name = "bunny";
+int main(int argc, char *argv[]) {
+
+    std::string mesh_name = "bunny", expected_mesh = "";
 
     std::string saving_subfolder = "../data/";
     //saving_subfolder = "../good_ones/demo_polycubes/";
@@ -50,54 +53,43 @@ int main(int argc, char *argv[]){
         saving_subfolder = std::string(argv[3]);
     }
 
-    std::cout << "Mesh name = " << mesh_name << std::endl;
-
-    int width = 360; //1*480;
-    int height = 360; //1*480;
-    std::string expected_mesh = "";
-
-
     // --- OPTIONS --- //
 
     double zoom_value = 0.9;
     Eigen::Vector3d trans_vector(0, 0, 0);
     bool is_orthographic = false;
 
-    enum MESH_MODE {INITIAL, POLYCUBE};
+    enum MESH_MODE {INITIAL,    //input triangular mesh
+                    POLYCUBE    //polycube triangular mesh
+                    };
     MESH_MODE mesh_mode = INITIAL;
 
-    enum COLORS_MODE {WHITE, LABELLING, NORMALS, NAIVE_LABELLING};
+    enum COLORS_MODE {WHITE,            //solid white color
+                      LABELLING,        //per triangle label (white/red/blue)
+                      NORMALS,          //colors according to the normals
+                      NAIVE_LABELLING   //naive labeling, see flagging_utils.cpp normalFlagging()
+                      };
     COLORS_MODE colors_mode = WHITE;
     bool colors_face_AO = false;
 
-    enum EDGES_MODE {BOUNDARIES, FEATURES, NO_EDGES};
+    enum EDGES_MODE {BOUNDARIES,    //show edges between two different labels
+                     FEATURES,      //show feature edges
+                     NO_EDGES       //don't show any edges
+                     };
     EDGES_MODE edges_mode = NO_EDGES;
 
-    enum ROTATION_MODE {FOUR_POV, SINGLE_PRESET};
+    enum ROTATION_MODE {FOUR_POV,       //4 points of view
+                        SINGLE_PRESET   //only 1 picture of predefined rotation
+                        };
     ROTATION_MODE rotation_mode = FOUR_POV;
     Eigen::Matrix3d rot_preset = Eigen::MatrixXd::Identity(3, 3);
 
-    // --- FIGURES - change stuff here --- //
-
-    enum FIGURE {FIG_A,     //polycube colored with labeling    4 pictures
-                 FIG_B,     //input mesh, white                 4 pictures
-                 FIG_C_1,   //input mesh colored with labeling  1 picture
-                 FIG_C_2,   //input mesh colored with normals   3 pictures
-                 FIG_D,     //input mesh colored with labeling  4 pictures
-                 /*FIG_E,
-                 FIG_F,
-                 FIG_G,
-                 FIG_H,
-                 FIG_I,
-                 FIG_J,
-                 FIG_K,
-                 FIG_L,
-                 FIG_M,
-                 FIG_N,
-                 FIG_O,
-                 FIG_P,
-                 FIG_Q */};
-    FIGURE figure = FIG_A;
+    enum FIGURE {FIG_0_POLYCUBE,
+                 FIG_1_INPUT,
+                 FIG_2_LABELING_CUSTOM_VIEW,
+                 FIG_3_NORMALS,
+                 FIG_4_LABELING};
+    FIGURE figure = FIG_0_POLYCUBE;
 
     if (argc >= 3){
         figure = (FIGURE) std::atoi(argv[2]);
@@ -105,7 +97,7 @@ int main(int argc, char *argv[]){
 
     int n_figs;
 
-    if (figure == FIG_A){
+    if (figure == FIG_0_POLYCUBE){
         colors_mode = LABELLING;
         edges_mode = BOUNDARIES;
         mesh_mode = POLYCUBE;
@@ -113,7 +105,7 @@ int main(int argc, char *argv[]){
         colors_face_AO = true;
     }
 
-    if (figure == FIG_B){
+    if (figure == FIG_1_INPUT){
         colors_mode = WHITE;
         edges_mode = FEATURES;
         mesh_mode = INITIAL;
@@ -121,7 +113,7 @@ int main(int argc, char *argv[]){
         colors_face_AO = true;
     }
 
-    if (figure == FIG_C_1){
+    if (figure == FIG_2_LABELING_CUSTOM_VIEW){
         colors_mode = NAIVE_LABELLING;
         mesh_mode = INITIAL;
         n_figs = 1;
@@ -133,7 +125,7 @@ int main(int argc, char *argv[]){
 
     }
 
-    if (figure == FIG_C_2){
+    if (figure == FIG_3_NORMALS){
         // This one also has slight modifications further down
         colors_mode = NORMALS;
         mesh_mode = INITIAL;
@@ -145,7 +137,7 @@ int main(int argc, char *argv[]){
                       -0.432969, -0.786804,  0.439861;
     }
 
-    if (figure == FIG_D){
+    if (figure == FIG_4_LABELING){
         colors_mode = LABELLING;
         edges_mode = NO_EDGES; //BOUNDARIES;
         mesh_mode = INITIAL;
@@ -172,7 +164,7 @@ int main(int argc, char *argv[]){
         igl::read_triangle_mesh(mesh_file, V, F);
     }    
 
-    std::string input_edges = saving_subfolder + mesh_name + "/input_edges.mesh";
+    std::string input_edges = FEATURE_EDGES_PATH;
     Eigen::MatrixXi edges;
     Eigen::MatrixXd V_edges;
     if (edges_mode == FEATURES) {
@@ -183,15 +175,10 @@ int main(int argc, char *argv[]){
             readDotMeshEdges(input_edges, V_edges, edges);
         }
     }
-    
-    
-
-    //igl::Camera camera;
 
     Eigen::MatrixXi TT; 
     igl::triangle_triangle_adjacency(F, TT);
 
-    //V = V.colwise() - V.colwise().mean();
     V.col(0) = V.col(0).array() - V.col(0).mean();
     V.col(1) = V.col(1).array() - V.col(1).mean();
     V.col(2) = V.col(2).array() - V.col(2).mean();
@@ -202,8 +189,6 @@ int main(int argc, char *argv[]){
     // --------------------------
 
     Eigen::MatrixXd N;
-    // Compute per-corner normals, |dihedral angle| > 20 degrees --> crease
-    //igl::per_corner_normals(V, F, 20.0, N);crease
     igl::per_vertex_normals(V, F, N);
     Eigen::VectorXd AO;
     igl::embree::ambient_occlusion(V, F, V, N, 30, AO);
@@ -268,18 +253,9 @@ int main(int argc, char *argv[]){
 
     std::cout << "COLORS set" << std::endl;
 
-    // FIG C
-    /*for (int i=0; i<colors.rows(); i++){
-        colors(i,1) = 0.0;
-        colors(i,2) = 0.0;
-    }*/
-
-
-
     Eigen::MatrixXf begs(0,0);
     Eigen::MatrixXf ends(0,0);
     Eigen::MatrixXf edge_colors(0,0);
-        
 
     if (edges_mode == BOUNDARIES){
 
@@ -439,7 +415,7 @@ int main(int argc, char *argv[]){
         }
 
 
-        if (figure == FIG_C_2){
+        if (figure == FIG_3_NORMALS){
             Eigen::MatrixXd new_colors = colors;
             new_colors.col(pic) = new_colors.col(pic).array() * new_colors.col(pic).array(); 
             new_colors.col((pic+1)%3) = Eigen::VectorXd::Constant(new_colors.rows(), 0.0);
@@ -457,10 +433,10 @@ int main(int argc, char *argv[]){
         er.set_zoom(zoom_value);
         er.set_orthographic(is_orthographic);
             
-        Eigen::Matrix<unsigned char,Eigen::Dynamic,Eigen::Dynamic> R(width, height);
-        Eigen::Matrix<unsigned char,Eigen::Dynamic,Eigen::Dynamic> G(width, height);
-        Eigen::Matrix<unsigned char,Eigen::Dynamic,Eigen::Dynamic> B(width, height);
-        Eigen::Matrix<unsigned char,Eigen::Dynamic,Eigen::Dynamic> A(width, height);
+        Eigen::Matrix<unsigned char,Eigen::Dynamic,Eigen::Dynamic> R(PICTURES_WIDTH, PICTURES_HEIGHT);
+        Eigen::Matrix<unsigned char,Eigen::Dynamic,Eigen::Dynamic> G(PICTURES_WIDTH, PICTURES_HEIGHT);
+        Eigen::Matrix<unsigned char,Eigen::Dynamic,Eigen::Dynamic> B(PICTURES_WIDTH, PICTURES_HEIGHT);
+        Eigen::Matrix<unsigned char,Eigen::Dynamic,Eigen::Dynamic> A(PICTURES_WIDTH, PICTURES_HEIGHT);
 
         // render view using embree
         std::cout << "Rendering..." << std::endl;
