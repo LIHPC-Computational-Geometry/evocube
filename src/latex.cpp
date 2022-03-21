@@ -2,6 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <algorithm> //std::replace
 
 #include "latex.h"
 #include "logging.h"
@@ -52,10 +53,24 @@ LatexDoc::~LatexDoc() {
 bool LatexDoc::add_mesh(std::filesystem::path path_to_mesh_folder) {
 
     bool incomplete_page = false;
-    std::string mesh_name = path_to_mesh_folder.parent_path().filename();//extract the folder name from the path
+    std::string mesh_name = path_to_mesh_folder.filename(), label = "";
+
+    //replace '_' by "\\_" for mesh_name
+    //remove '_' for label
+    size_t pos = 0;
+    while(pos < mesh_name.length()) {
+        if(mesh_name[pos] == '_') {
+            mesh_name.replace(pos, 1, "\\_");
+            pos += 2;
+        }
+        else {
+            label += mesh_name[pos];
+            pos++;
+        }
+    }
     
     ofs << "\\section{" << mesh_name << "}%" << std::endl;
-    ofs << "\\label{sec:" << mesh_name << "}%" << std::endl;
+    ofs << "\\label{sec:" << label << "}%" << std::endl;
     ofs << "{%" << std::endl;
     ofs << "\\centering%" << std::endl;
 
@@ -64,7 +79,7 @@ bool LatexDoc::add_mesh(std::filesystem::path path_to_mesh_folder) {
     incomplete_page |= add_pictures(path_to_mesh_folder,1,mesh_name + ", input");
 
     ofs << "\\par%" << std::endl;
-    ofs << "}" << std::endl;
+    ofs << "}%" << std::endl;
     ofs << "\\vspace{-20pt}%" << std::endl;
     ofs << "{%" << std::endl;
     ofs << "\\centering%" << std::endl;
@@ -72,7 +87,7 @@ bool LatexDoc::add_mesh(std::filesystem::path path_to_mesh_folder) {
     incomplete_page |= add_pictures(path_to_mesh_folder,4,mesh_name + ", labelling");
 
     ofs << "\\par%" << std::endl;
-    ofs << "}" << std::endl;
+    ofs << "}%" << std::endl;
     ofs << "\\vspace{-20pt}%" << std::endl;
     ofs << "{%" << std::endl;
     ofs << "\\centering%" << std::endl;
@@ -80,7 +95,7 @@ bool LatexDoc::add_mesh(std::filesystem::path path_to_mesh_folder) {
     incomplete_page |= add_pictures(path_to_mesh_folder,0,mesh_name + ", polycube");
 
     ofs << "\\par%" << std::endl;
-    ofs << "}" << std::endl;
+    ofs << "}%" << std::endl;
     ofs << "\\clearpage%" << std::endl;
     ofs << "%" << std::endl;
     ofs << "%" << std::endl;
@@ -93,10 +108,10 @@ bool LatexDoc::add_mesh(std::filesystem::path path_to_mesh_folder) {
 
 bool LatexDoc::add_pictures(std::filesystem::path path_to_mesh_folder, int figure_id, std::string caption) {
 
-    std::string fig0 = PATH_TO_FIGURE(path_to_mesh_folder.string(),figure_id,0),
-                fig1 = PATH_TO_FIGURE(path_to_mesh_folder.string(),figure_id,0),
-                fig2 = PATH_TO_FIGURE(path_to_mesh_folder.string(),figure_id,0),
-                fig3 = PATH_TO_FIGURE(path_to_mesh_folder.string(),figure_id,0);
+    std::string fig0 = PATH_TO_FIGURE(path_to_mesh_folder.string()+"/",figure_id,0),
+                fig1 = PATH_TO_FIGURE(path_to_mesh_folder.string()+"/",figure_id,0),
+                fig2 = PATH_TO_FIGURE(path_to_mesh_folder.string()+"/",figure_id,0),
+                fig3 = PATH_TO_FIGURE(path_to_mesh_folder.string()+"/",figure_id,0);
 
     if( std::filesystem::exists(fig0) && 
         std::filesystem::exists(fig1) && 

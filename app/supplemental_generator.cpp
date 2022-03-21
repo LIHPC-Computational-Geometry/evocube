@@ -3,14 +3,13 @@
 #include <string>
 #include <iostream>
 #include <fstream>
-#include <sstream>
+#include <set>
 
-#include <array>
-#include <map>
 
 #include "latex.h"
 #include "logging.h"
 
+#define INPUT_DATA_PATH             "../data/"
 #define OUTPUT_SUPPLEMENTAL_PATH    "../supplemental/"
 
 int main(int argc, char** argv) {
@@ -21,9 +20,15 @@ int main(int argc, char** argv) {
     unsigned int nb_incomplete_meshes = 0;
 
     LatexDoc latex(std::string(OUTPUT_SUPPLEMENTAL_PATH) + "supplemental.tex");
-    nb_incomplete_meshes += latex.add_mesh("../data/B21/");
-    nb_incomplete_meshes += latex.add_mesh("../data/M8/");
-    nb_incomplete_meshes += latex.add_mesh("../data/M9/");
+
+    std::set<std::filesystem::directory_entry> entries_sorted_by_name;
+    for(const std::filesystem::directory_entry& dir_entry : std::filesystem::directory_iterator(INPUT_DATA_PATH))//interators have no order -> sort by alphabetical order with a set
+        entries_sorted_by_name.insert(dir_entry);
+
+    for(const std::filesystem::directory_entry& dir_entry : entries_sorted_by_name) {
+        if(!dir_entry.is_directory()) continue;
+        nb_incomplete_meshes += latex.add_mesh(dir_entry.path());
+    }
 
     if(nb_incomplete_meshes > 0)
         coloredPrint( std::to_string(nb_incomplete_meshes) + " mesh(es) have some figures missing", "red");
