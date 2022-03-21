@@ -8,8 +8,12 @@
 #include <array>
 #include <map>
 
-namespace fs = std::filesystem;
+#include "latex.h"
 
+#define OUTPUT_SUPPLEMENTAL_PATH    "../supplemental/"
+
+/*
+namespace fs = std::filesystem;
 
 struct run_result {
     int nb_tets = 0;
@@ -116,8 +120,7 @@ std::string make_table(const run_result& res, const std::string& filename) {
     return sst.str();
 }
 
-/*
-* \usepackage{ array }
+\usepackage{ array }
 \usepackage{ tabularx }
 \newcolumntype{ Y }{ > {\centering\arraybackslash}X}
 \begin{ document }
@@ -131,8 +134,6 @@ Model Name& \#tets& \#flipped tets& Input gen.time& Method time& Milp time& \#so
 1.1 & 1.2 & 1.3 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
 \hline
 \end{ tabularx } \\
-*/
-
 
 static std::string make_array_data(const std::string& dir_name) {
     int nb_timeout = 0;
@@ -166,15 +167,23 @@ static std::string make_array_data(const std::string& dir_name) {
     return sst.str();
 
 }
+*/
 
 
 int main(int argc, char** argv) {
+
+    if(!std::filesystem::exists(OUTPUT_SUPPLEMENTAL_PATH))
+        std::filesystem::create_directory(OUTPUT_SUPPLEMENTAL_PATH);
+
+    SubLatexDoc subdoc1(std::string(OUTPUT_SUPPLEMENTAL_PATH) + "subdoc1.tex");
+    MainLatexDoc maindoc(std::string(OUTPUT_SUPPLEMENTAL_PATH) + "main.tex");
+
+
+    /*
     if (argc != 3){
         std::cout << "Usage: " << argv[0] << " dir doc " << std::endl;
         return 1;
-    } 
-
-
+    }
 
     std::string dir_name = argv[1]; 
     std::string latex_file_name = argv[2];
@@ -272,6 +281,7 @@ int main(int argc, char** argv) {
         latex_file << "\\includepdf[pages=-]{"<< small_pdf <<"}" << std::endl;
     }
     latex_file << "\\end{document}" << std::endl;
+    */
 
     return 0;
 }

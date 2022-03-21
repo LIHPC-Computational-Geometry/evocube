@@ -2,3 +2,4 @@ build/*
 .vscode/*
 data/*
 .ipynb_checkpoints
+supplemental/*

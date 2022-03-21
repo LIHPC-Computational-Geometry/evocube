@@ -67,3 +67,7 @@ target_link_libraries(test_scaled_jacobian igl::core igl::tetgen ${EVOCUBE_LIBS}
 add_executable(figure_generator ${SRCFILES} app/figure_generator.cpp)
 include_directories(include)
 target_link_libraries(figure_generator igl::core igl::tetgen igl::embree igl::opengl_glfw igl::png ${EVOCUBE_LIBS})
+
+add_executable(supplemental_generator ${SRCFILES} app/supplemental_generator.cpp)
+include_directories(include)
+target_link_libraries(supplemental_generator igl::core igl::embree igl::tetgen ${EVOCUBE_LIBS})
