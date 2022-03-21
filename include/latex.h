@@ -2,25 +2,16 @@
 #include <fstream>
 #include <string>
 
-class MainLatexDoc {
+class LatexDoc {
 
 public:
-    MainLatexDoc(std::string filename);
-    ~MainLatexDoc();
+    LatexDoc(std::string filename);
+    ~LatexDoc();
 
-    void include_pdf(std::string pdf_filename);
+    bool add_mesh(std::string path_to_mesh_folder);
 
 private:
     std::ofstream ofs;
 
-};
-
-class SubLatexDoc {
-
-public:
-    SubLatexDoc(std::string filename);
-    ~SubLatexDoc();
-
-private:
-    std::ofstream ofs;
+    bool add_pictures(std::string path_to_mesh_folder, int figure_id);
 };
