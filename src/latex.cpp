@@ -49,19 +49,19 @@ LatexDoc::~LatexDoc() {
     ofs.close();
 }
 
-bool LatexDoc::add_mesh(std::string path_to_mesh_folder) {
+bool LatexDoc::add_mesh(std::filesystem::path path_to_mesh_folder) {
 
     bool incomplete_page = false;
+    std::string mesh_name = path_to_mesh_folder.parent_path().filename();//extract the folder name from the path
     
-    ofs << "\\section{" << path_to_mesh_folder << "}%" << std::endl;
-    ofs << "\\label{sec:" << path_to_mesh_folder << "}%" << std::endl;
+    ofs << "\\section{" << mesh_name << "}%" << std::endl;
+    ofs << "\\label{sec:" << mesh_name << "}%" << std::endl;
     ofs << "{%" << std::endl;
     ofs << "\\centering%" << std::endl;
 
     //TODO read metrics and put them in a table
 
-    //add input mesh pictures : fig1_X.png
-    incomplete_page |= add_pictures(path_to_mesh_folder,1,path_to_mesh_folder + ", input");
+    incomplete_page |= add_pictures(path_to_mesh_folder,1,mesh_name + ", input");
 
     ofs << "\\par%" << std::endl;
     ofs << "}" << std::endl;
@@ -69,8 +69,7 @@ bool LatexDoc::add_mesh(std::string path_to_mesh_folder) {
     ofs << "{%" << std::endl;
     ofs << "\\centering%" << std::endl;
 
-    //add labeling pictures : fig4_X.png
-    incomplete_page |= add_pictures(path_to_mesh_folder,4,path_to_mesh_folder + ", labelling");
+    incomplete_page |= add_pictures(path_to_mesh_folder,4,mesh_name + ", labelling");
 
     ofs << "\\par%" << std::endl;
     ofs << "}" << std::endl;
@@ -78,8 +77,7 @@ bool LatexDoc::add_mesh(std::string path_to_mesh_folder) {
     ofs << "{%" << std::endl;
     ofs << "\\centering%" << std::endl;
 
-    //add polycube pictures : fig0_X.png
-    incomplete_page |= add_pictures(path_to_mesh_folder,0,path_to_mesh_folder + ", polycube");
+    incomplete_page |= add_pictures(path_to_mesh_folder,0,mesh_name + ", polycube");
 
     ofs << "\\par%" << std::endl;
     ofs << "}" << std::endl;
@@ -89,16 +87,16 @@ bool LatexDoc::add_mesh(std::string path_to_mesh_folder) {
     ofs << "%" << std::endl;
 
     if(incomplete_page)
-        coloredPrint(std::string("Some/all figures of ") + path_to_mesh_folder + " are missing","red");
+        coloredPrint(std::string("Some/all figures of ") + mesh_name + " are missing","red");
     return incomplete_page;
 }
 
-bool LatexDoc::add_pictures(std::string path_to_mesh_folder, int figure_id, std::string caption) {
+bool LatexDoc::add_pictures(std::filesystem::path path_to_mesh_folder, int figure_id, std::string caption) {
 
-    std::string fig0 = PATH_TO_FIGURE(path_to_mesh_folder,figure_id,0),
-                fig1 = PATH_TO_FIGURE(path_to_mesh_folder,figure_id,0),
-                fig2 = PATH_TO_FIGURE(path_to_mesh_folder,figure_id,0),
-                fig3 = PATH_TO_FIGURE(path_to_mesh_folder,figure_id,0);
+    std::string fig0 = PATH_TO_FIGURE(path_to_mesh_folder.string(),figure_id,0),
+                fig1 = PATH_TO_FIGURE(path_to_mesh_folder.string(),figure_id,0),
+                fig2 = PATH_TO_FIGURE(path_to_mesh_folder.string(),figure_id,0),
+                fig3 = PATH_TO_FIGURE(path_to_mesh_folder.string(),figure_id,0);
 
     if( std::filesystem::exists(fig0) && 
         std::filesystem::exists(fig1) && 
