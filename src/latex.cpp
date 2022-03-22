@@ -171,9 +171,9 @@ void LatexDoc::add_table(const std::vector<std::pair<std::string,std::string>>& 
     ofs << "\\end{tabular}%" << std::endl;
 }
 
-void LatexDoc::add_metrics_table(bool found_valid_labeling, int invalid_patches, int invalid_corners, int invalid_boundaries, int nb_turning_points, double fidelity) {
+void LatexDoc::add_metrics_table(bool found_valid_labelling, int invalid_patches, int invalid_corners, int invalid_boundaries, int nb_turning_points, double fidelity) {
     std::vector<std::pair<std::string,std::string>> table_content;
-    table_content.push_back(std::make_pair<std::string,std::string>("Found valid labelling",std::to_string(found_valid_labeling)));
+    table_content.push_back(std::make_pair<std::string,std::string>("Found valid labelling",std::to_string(found_valid_labelling)));
     table_content.push_back(std::make_pair<std::string,std::string>("Inv. Patches",         std::to_string(invalid_patches)));
     table_content.push_back(std::make_pair<std::string,std::string>("Inv. Corners",         std::to_string(invalid_corners)));
     table_content.push_back(std::make_pair<std::string,std::string>("Inv. Boundaries",      std::to_string(invalid_boundaries)));
