@@ -2,4 +2,8 @@ build/*
 .vscode/*
 data/*
 .ipynb_checkpoints
+# in supplemental/, include only the cover page
+# https://riptutorial.com/git/example/911/exceptions-in-a--gitignore-file
+!supplemental/
 supplemental/*
+!supplemental/cover_page.tex

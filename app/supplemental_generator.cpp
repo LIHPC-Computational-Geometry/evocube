@@ -5,11 +5,11 @@
 #include <fstream>
 #include <set>
 
-
 #include "latex.h"
 #include "logging.h"
 
 #define INPUT_DATA_PATH             "../data/"
+#define INPUT_COVER_PAGE            "../supplemental/cover_page.tex"
 #define OUTPUT_SUPPLEMENTAL_PATH    "../supplemental/"
 
 int main(int argc, char** argv) {
@@ -20,6 +20,7 @@ int main(int argc, char** argv) {
     unsigned int nb_incomplete_meshes = 0;
 
     LatexDoc latex(std::string(OUTPUT_SUPPLEMENTAL_PATH) + "supplemental.tex");
+    latex.add_subpage(std::filesystem::relative(INPUT_COVER_PAGE,OUTPUT_SUPPLEMENTAL_PATH));//argument = where is the cover page relative to the output folder
 
     std::set<std::filesystem::directory_entry> entries_sorted_by_name;
     for(const std::filesystem::directory_entry& dir_entry : std::filesystem::directory_iterator(INPUT_DATA_PATH))//interators have no order -> sort by alphabetical order with a set

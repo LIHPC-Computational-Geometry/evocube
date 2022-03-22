@@ -27,27 +27,18 @@ LatexDoc::LatexDoc(std::string filename)
     ofs << "%" << std::endl;
     ofs << "%" << std::endl;
     ofs << "\\begin{document}%" << std::endl;
-
-    // cover page
-
-    ofs << "\\normalsize%" << std::endl;
-    ofs << "\\title{Evocube {-} Supplemental material}%" << std::endl;
-    ofs << "\\date{}%" << std::endl;
-    ofs << "\\maketitle%" << std::endl;
-    ofs << "\\large%" << std::endl;
-    ofs << "This file includes all the supplemental material submitted along with \\textit{Evocube: A Genetic Labelling Framework for Polycube-Maps}.%" << std::endl;
-    ofs << "%" << std::endl;
-    ofs << "\\vspace{20pt}%" << std::endl;
-    ofs << "\\normalsize%" << std::endl;
-    ofs << "\\clearpage%" << std::endl;
-    ofs << "%" << std::endl;
-    ofs << "%" << std::endl;
-    ofs << "%" << std::endl;
 }
 
 LatexDoc::~LatexDoc() {
     ofs << "\\end{document}" << std::endl;
     ofs.close();
+}
+
+void LatexDoc::add_subpage(std::filesystem::path path_to_subpage) {
+    ofs << "\\input{" << path_to_subpage.string() << "}%" << std::endl;
+    ofs << "%" << std::endl;
+    ofs << "%" << std::endl;
+    ofs << "%" << std::endl;
 }
 
 bool LatexDoc::add_mesh(std::filesystem::path path_to_mesh_folder) {

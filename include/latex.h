@@ -8,6 +8,7 @@ public:
     LatexDoc(std::string filename);
     ~LatexDoc();
 
+    void add_subpage(std::filesystem::path path_to_subpage);
     bool add_mesh(std::filesystem::path path_to_mesh_folder);
 
 private:
