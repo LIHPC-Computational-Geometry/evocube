@@ -68,12 +68,7 @@ bool LatexDoc::add_mesh(std::filesystem::path path_to_mesh_folder) {
     ofs << "\\centering%" << std::endl;
 
     //TODO read metrics and put them in a table
-
-    std::vector<std::pair<std::string,std::string>> mytablecontent;
-    mytablecontent.push_back(std::make_pair<std::string,std::string>("Column 1","dummy value a"));
-    mytablecontent.push_back(std::make_pair<std::string,std::string>("Column 2","dummy value b"));
-    mytablecontent.push_back(std::make_pair<std::string,std::string>("Column 3","dummy value c"));
-    add_table(mytablecontent);
+    // add_metrics_table(1,0,0,0,2,0.052177);
 
     incomplete_page |= add_pictures(path_to_mesh_folder,1,mesh_name + ", input");
 
@@ -160,7 +155,7 @@ void LatexDoc::add_table(const std::vector<std::pair<std::string,std::string>>& 
         if(index != values.size()-1)
             ofs << " & ";
         else
-            ofs << " \\\\" << std::endl;
+            ofs << " \\\\%" << std::endl;
     }
     ofs << "\\hline%" << std::endl;
 
@@ -174,4 +169,15 @@ void LatexDoc::add_table(const std::vector<std::pair<std::string,std::string>>& 
     }
     ofs << "\\hline%" << std::endl;
     ofs << "\\end{tabular}%" << std::endl;
+}
+
+void LatexDoc::add_metrics_table(bool found_valid_labeling, int invalid_patches, int invalid_corners, int invalid_boundaries, int nb_turning_points, double fidelity) {
+    std::vector<std::pair<std::string,std::string>> table_content;
+    table_content.push_back(std::make_pair<std::string,std::string>("Found valid labelling",std::to_string(found_valid_labeling)));
+    table_content.push_back(std::make_pair<std::string,std::string>("Inv. Patches",         std::to_string(invalid_patches)));
+    table_content.push_back(std::make_pair<std::string,std::string>("Inv. Corners",         std::to_string(invalid_corners)));
+    table_content.push_back(std::make_pair<std::string,std::string>("Inv. Boundaries",      std::to_string(invalid_boundaries)));
+    table_content.push_back(std::make_pair<std::string,std::string>("\\# turning points",     std::to_string(nb_turning_points)));
+    table_content.push_back(std::make_pair<std::string,std::string>("Fidelity",             std::to_string(fidelity)));
+    add_table(table_content);
 }
