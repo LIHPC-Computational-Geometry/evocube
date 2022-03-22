@@ -3,6 +3,8 @@
 #include <fstream>
 #include <string>
 #include <algorithm> //std::replace
+#include <utility> //std::pair
+#include <vector>
 
 #include "latex.h"
 #include "logging.h"
@@ -66,6 +68,12 @@ bool LatexDoc::add_mesh(std::filesystem::path path_to_mesh_folder) {
     ofs << "\\centering%" << std::endl;
 
     //TODO read metrics and put them in a table
+
+    std::vector<std::pair<std::string,std::string>> mytablecontent;
+    mytablecontent.push_back(std::make_pair<std::string,std::string>("Column 1","dummy value a"));
+    mytablecontent.push_back(std::make_pair<std::string,std::string>("Column 2","dummy value b"));
+    mytablecontent.push_back(std::make_pair<std::string,std::string>("Column 3","dummy value c"));
+    add_table(mytablecontent);
 
     incomplete_page |= add_pictures(path_to_mesh_folder,1,mesh_name + ", input");
 
@@ -133,4 +141,37 @@ bool LatexDoc::add_pictures(std::filesystem::path path_to_mesh_folder, int figur
     }
     else 
         return true;
+}
+
+void LatexDoc::add_table(const std::vector<std::pair<std::string,std::string>>& values) {
+
+    if(values.empty())
+        return;
+
+    //declare a tabular environment with values.size() centered columns
+    ofs << "\\begin{tabular}{|";
+    for(int index = 0; index < values.size(); index++) { ofs << "c|"; }
+    ofs << "}%" << std::endl;
+    ofs << "\\hline%" << std::endl;
+
+    //write column names
+    for(int index = 0; index < values.size(); index++) {
+        ofs << values[index].first;
+        if(index != values.size()-1)
+            ofs << " & ";
+        else
+            ofs << " \\\\" << std::endl;
+    }
+    ofs << "\\hline%" << std::endl;
+
+    //write column values
+    for(int index = 0; index < values.size(); index++) {
+        ofs << values[index].second;
+        if(index != values.size()-1)
+            ofs << " & ";
+        else
+            ofs << " \\\\%" << std::endl;
+    }
+    ofs << "\\hline%" << std::endl;
+    ofs << "\\end{tabular}%" << std::endl;
 }
