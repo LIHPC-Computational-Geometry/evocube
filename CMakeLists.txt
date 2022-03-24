@@ -38,6 +38,7 @@ SET(EVOCUBE_LIBS
     OpenNL_psm
     OpenVolumeMesh 
     HexEx
+    igl::embree
 )
 
 add_executable(viz_tet app/viz_tet.cpp src/flagging_utils.cpp src/tet_boundary.cpp src/logging.cpp)
@@ -59,15 +60,15 @@ add_executable(init_from_folder app/init_from_folder.cpp ${SRCFILES})
 target_link_libraries(init_from_folder igl::core igl::tetgen ${EVOCUBE_LIBS})
 
 add_executable(polycube_withHexEx app/polycube_withHexEx.cpp ${SRCFILES})
-target_link_libraries(polycube_withHexEx igl::core igl::tetgen igl::embree ${EVOCUBE_LIBS})
+target_link_libraries(polycube_withHexEx igl::core igl::tetgen ${EVOCUBE_LIBS})
 
 add_executable(test_scaled_jacobian app/test_scaled_jacobian.cpp ${SRCFILES})
 target_link_libraries(test_scaled_jacobian igl::core igl::tetgen ${EVOCUBE_LIBS})
 
 add_executable(figure_generator ${SRCFILES} app/figure_generator.cpp)
 include_directories(include)
-target_link_libraries(figure_generator igl::core igl::tetgen igl::embree igl::opengl_glfw igl::png ${EVOCUBE_LIBS})
+target_link_libraries(figure_generator igl::core igl::tetgen igl::opengl_glfw igl::png ${EVOCUBE_LIBS})
 
 add_executable(supplemental_generator ${SRCFILES} app/supplemental_generator.cpp)
 include_directories(include)
-target_link_libraries(supplemental_generator igl::core igl::embree igl::tetgen ${EVOCUBE_LIBS})
+target_link_libraries(supplemental_generator igl::core igl::tetgen ${EVOCUBE_LIBS})

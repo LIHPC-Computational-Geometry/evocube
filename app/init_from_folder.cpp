@@ -25,6 +25,8 @@ int main(){
     bool skip_first = false;
     bool skip_if_folder_exists = false;
     bool break_after_first = false;
+    bool labeling_already_computed = true;
+    bool hexes_already_computed = true;
 
     //input_path = "../data/DATASET/OM_cad_meshes/";
     // "../data/2019-OctreeMeshing/input/smooth/"
@@ -211,16 +213,26 @@ int main(){
             computeTetMeshBoundary(TT, TV, new_folder + output_tris_to_tets, boundary_obj_path);
         } // !tet_mesh_already_computed
         
-        std::string logs_path = new_folder + logs_file;
-        resetLogFile(logs_path);
+        if (!labeling_already_computed){
+            std::string logs_path = new_folder + logs_file;
+            resetLogFile(logs_path);
 
-        std::string command_labeling = "./test_greedy " + boundary_obj_path + " " + new_folder;
-        int result_labeling = system(command_labeling.c_str());
+            std::string command_labeling = "./test_greedy " + boundary_obj_path + " " + new_folder;
+            int result_labeling = system(command_labeling.c_str());
+        }
 
-        std::string scale = "1.3";
-        //std::string command_hexex = "./polycube_withHexEx " + output_mesh + " " + new_folder + output_labeling_on_tets + " " + new_folder + output_hex + " " + scale;
-        std::string command_hexex = "./polycube_withHexEx " + new_folder + " " + scale;
-        int result_hexex = system(command_hexex.c_str());
+        if (!hexes_already_computed){
+            std::string scale = "1.3";
+            //std::string command_hexex = "./polycube_withHexEx " + output_mesh + " " + new_folder + output_labeling_on_tets + " " + new_folder + output_hex + " " + scale;
+            std::string command_hexex = "./polycube_withHexEx " + new_folder + " " + scale;
+            int result_hexex = system(command_hexex.c_str());
+        }
+
+        std::string command_figure = "./figure_generator " + file_without_extension + " 0 " + output_path;
+        command_figure += " && ./figure_generator " + file_without_extension + " 1 " + output_path;
+        command_figure += " && ./figure_generator " + file_without_extension + " 4 " + output_path;
+        int result_hexex = system(command_figure.c_str());
+        
 
         //./test_greedy ../data/DATASET2/OM_smoothscrewdriver_input_tri/boundary.obj 0
         //./polycube_withHexEx ../data/DATASET2/medium_mambo/M8/tetra.mesh ../data/DATASET2/medium_mambo/M8/labeling_on_tets.txt ../data/DATASET2/medium_mambo/M8/hexes.mesh 1.4

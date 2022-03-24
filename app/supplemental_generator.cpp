@@ -32,9 +32,9 @@ int main(int argc, char** argv) {
     }
 
     if(nb_incomplete_meshes > 0)
-        coloredPrint( std::to_string(nb_incomplete_meshes) + " mesh(es) have some figures missing", "red");
+        coloredPrint(std::to_string(nb_incomplete_meshes) + " mesh(es) have some figures missing", "red");
     else
-        coloredPrint( "No figure missing", "green");
+        coloredPrint("No figure missing", "green");
 
     return 0;
 }

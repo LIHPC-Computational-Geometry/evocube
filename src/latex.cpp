@@ -103,9 +103,9 @@ bool LatexDoc::add_mesh(std::filesystem::path path_to_mesh_folder) {
 bool LatexDoc::add_pictures(std::filesystem::path path_to_mesh_folder, int figure_id, std::string caption) {
 
     std::string fig0 = PATH_TO_FIGURE(path_to_mesh_folder.string()+"/",figure_id,0),
-                fig1 = PATH_TO_FIGURE(path_to_mesh_folder.string()+"/",figure_id,0),
-                fig2 = PATH_TO_FIGURE(path_to_mesh_folder.string()+"/",figure_id,0),
-                fig3 = PATH_TO_FIGURE(path_to_mesh_folder.string()+"/",figure_id,0);
+                fig1 = PATH_TO_FIGURE(path_to_mesh_folder.string()+"/",figure_id,1),
+                fig2 = PATH_TO_FIGURE(path_to_mesh_folder.string()+"/",figure_id,2),
+                fig3 = PATH_TO_FIGURE(path_to_mesh_folder.string()+"/",figure_id,3);
 
     if( std::filesystem::exists(fig0) && 
         std::filesystem::exists(fig1) && 
