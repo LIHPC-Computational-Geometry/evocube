@@ -174,7 +174,6 @@ int main(int argc, char *argv[]){
             int p1 = gen_archive.probabilisticIndividual();
             int p2 = gen_archive.probabilisticIndividual();
             if (p1 == p2) continue;
-            std::cout << "cross " << p1 << " + " << p2 << " /" << gen_archive.getSize() << std::endl;
             std::shared_ptr<LabelingIndividual> child = std::make_shared<LabelingIndividual>(
                                                                 LabelingIndividual(*gen_archive.getIndiv(p1), 
                                                                                    *gen_archive.getIndiv(p2)));

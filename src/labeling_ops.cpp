@@ -81,7 +81,6 @@ void directionalPathMutation(const std::vector<std::vector<int>>& VT,
                              int introduced_label,
                              Eigen::VectorXi& labeling){
 
-    std::cout << "directionalPathMutation..." << std::endl;
     // precompute: sorted vector of patch boundary vertices
     std::vector<int> border_vs;
     for (int i=0; i<borders.size(); i++){

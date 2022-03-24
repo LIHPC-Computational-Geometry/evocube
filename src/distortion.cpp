@@ -3,6 +3,8 @@
 #include <igl/doublearea.h>
 #include <iostream>
 
+#include "logging.h"
+
 Eigen::RowVector3d crossProd(const Eigen::RowVector3d& v1,
                              const Eigen::RowVector3d& v2){
     return v1.transpose().cross(v2.transpose()).transpose();
@@ -77,10 +79,16 @@ void computeDisto(const Eigen::MatrixXd& V1,
 double integrateDistortion(const Eigen::VectorXd& A,
                           const Eigen::VectorXd& disto){
 
-    int n_inf = disto.array().isInf().count();
+    if (disto.minCoeff() < 0) coloredPrint("ERROR: distortion is < 0", "red");
+    
+    /*std::cout << "disto range" << std::endl;
+    std::cout << disto.minCoeff() << std::endl;
+    std::cout << disto.maxCoeff() << std::endl;*/
 
-    //std::cout << "infinite values: " << n_inf << std::endl;
+    int max_disto = 10e8;
 
-    return (A * disto).sum() / A.sum() + static_cast<double>(n_inf * 10000);
+    Eigen::VectorXd distop = disto.array().min(static_cast<double>(max_disto));
+
+    return (A.array() * distop.array()).sum() / A.sum(); //+ static_cast<double>(n_inf * max_disto);
 
 }

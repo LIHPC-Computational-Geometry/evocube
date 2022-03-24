@@ -110,9 +110,9 @@ Eigen::VectorXi graphcutFlagging(const Eigen::MatrixXd& V, const Eigen::MatrixXi
         std::chrono::steady_clock::time_point after_precomp = std::chrono::steady_clock::now();   
         //precompute_time = std::chrono::duration_cast<std::chrono::milliseconds>(after_precomp - before_precomp).count();
 
-		printf("\nBefore optimization energy is %d",gc->compute_energy());
+		//printf("\nBefore optimization energy is %d",gc->compute_energy());
 		gc->expansion(2);// run expansion for 2 iterations. For swap use gc->swap(num_iterations);
-		printf("\nAfter optimization energy is %d\n",gc->compute_energy());
+		//printf("\nAfter optimization energy is %d\n",gc->compute_energy());
 
 		for ( int  i = 0; i < num_elem; i++ )
 			result[i] = gc->whatLabel(i);

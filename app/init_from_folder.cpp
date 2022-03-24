@@ -24,13 +24,13 @@ int main(){
     bool tet_mesh_already_computed = true;
     bool skip_first = false;
     bool skip_if_folder_exists = false;
-    bool break_after_first = true;
+    bool break_after_first = false;
 
     //input_path = "../data/DATASET/OM_cad_meshes/";
     // "../data/2019-OctreeMeshing/input/smooth/"
 
 
-    /*
+    //*
     input_path = "../data/2019-OctreeMeshing/input/smooth/";
     input_type = TRI_OBJ;
     expected_extension = "obj";
@@ -51,7 +51,7 @@ int main(){
     output_path = "../data/DATASET2/abc/";
     //*/
 
-    //*
+    /*
     input_path = "../../mambo/Basic";
     input_type = CAD_STEP;
     expected_extension = "step";
