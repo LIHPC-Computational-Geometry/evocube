@@ -50,6 +50,8 @@ int main(int argc, char *argv[]){
     std::shared_ptr<const QuickLabelEv> qle = std::make_shared<const QuickLabelEv>(QuickLabelEv(V, F));
     const Evaluator evaluator(evo, qle); 
 
+    // ---- GENERATE INITIAL SOLUTION ---- //
+
     int compact_coeff = 1;
     int fidelity_coeff = 3;
     Eigen::VectorXi labeling_init = graphcutFlagging(V, F, evo->N_, evo->TT_, compact_coeff, fidelity_coeff);
@@ -90,6 +92,9 @@ int main(int argc, char *argv[]){
     double sum_time_archive = 0;
     double sum_time_eval = 0;
 
+
+    // ---- GENETIC OPTIMIZATION ---- //
+
     auto time_before_evocube = std::chrono::steady_clock::now();
 
     int n_generations = 30;
@@ -106,6 +111,8 @@ int main(int argc, char *argv[]){
         new_gen.resize(max_mut);
         new_scores.resize(max_mut);
 
+
+        // -- Generate new individuals through MUTATIONS -- //
         #pragma omp parallel for
         for (int i=0; i<max_mut; i++){
             std::cout << "Generation " << generation << ", Mutation: " << i << std::endl;
@@ -160,12 +167,14 @@ int main(int argc, char *argv[]){
             #endif
         }
 
+        // Insert new indivs into archive (not done in the loop because it's not //)
         for (int i=0; i<new_gen.size(); i++){
             gen_archive.insert(new_gen[i], new_scores[i]);
         }
 
         auto time_after_mutations = std::chrono::steady_clock::now();
 
+        // -- Generate new individuals through CROSSING -- //
         int n_cross = 10;
         for (int i=0; i<n_cross; i++){
             std::cout << "Generation " << generation << ", Crossing: " << i << std::endl;
@@ -214,6 +223,7 @@ int main(int argc, char *argv[]){
     auto time_after_evocube = std::chrono::steady_clock::now();
 
 
+    // ---- FINAL SOLUTION ---- //
     std::shared_ptr<LabelingIndividual> final_indiv = archive.getIndiv(0);
 
     final_indiv->updateChartsAndTPs();
@@ -236,9 +246,56 @@ int main(int argc, char *argv[]){
     double time_post_evo = measureTime(time_after_evocube, time_after_post);
     coloredPrint("Evocube time: " + std::to_string(time_evocube), "cyan");
 
-    // --- VISUALIZATION ---
+    
+    if (!show_ui) {
+        std::string save_path = argv[2];
+        Eigen::VectorXi save_labeling = final_indiv->getLabeling();
 
-    if (show_ui){
+        std::cout << "Saving to:" << save_path << std::endl;
+        saveFlagging(save_path + "/labeling.txt", save_labeling);
+        saveFlaggingOnTets(save_path + "/labeling_on_tets.txt", save_path + "/tris_to_tets.txt", save_labeling);
+
+        saveFlagging(save_path + "/labeling_init.txt", labeling_init);
+        igl::writeOBJ(save_path + "/fast_polycube_surf.obj", def_V, F);
+
+        std::string logs_path = save_path + "/logs.json";
+        final_indiv->fillIndivLogInfo(logs_path, "LabelingFinal");
+
+        std::shared_ptr<LabelingIndividual> graph_cut_indiv = std::make_shared<LabelingIndividual>(LabelingIndividual(evo, qle, labeling_init));
+        graph_cut_indiv->updateChartsAndTPs(true);
+        graph_cut_indiv->fillIndivLogInfo(logs_path, "LabelingGraphCut");
+
+        Eigen::VectorXi normal_labeling = normalFlagging(V, F);
+        std::shared_ptr<LabelingIndividual> normal_indiv = std::make_shared<LabelingIndividual>(LabelingIndividual(evo, qle, normal_labeling));
+        normal_indiv->updateChartsAndTPs(true);
+        normal_indiv->fillIndivLogInfo(logs_path, "LabelingNormal");
+
+        auto start_time = std::chrono::system_clock::now();
+        std::time_t start_timet = std::chrono::system_clock::to_time_t(start_time);
+        fillLogInfo("FinishTime", logs_path, std::ctime(&start_timet));
+
+        // ALL THESE ARE IN CPU TIME! Since it's //, the sum is > to time_evocube
+        fillLogInfo("Timing", "CreateIndiv", logs_path, sum_time_create_indiv);
+        fillLogInfo("Timing", "Cross", logs_path, sum_time_cross);
+        fillLogInfo("Timing", "Mutations", logs_path, sum_time_mut);
+        fillLogInfo("Timing", "ChartsAndTps", logs_path, sum_time_chart);
+        fillLogInfo("Timing", "Archive", logs_path, sum_time_archive);
+        fillLogInfo("Timing", "Eval", logs_path, sum_time_eval);
+
+        // Real-world time
+        fillLogInfo("Timing", "PreGenetics", logs_path, time_init_evo);
+        fillLogInfo("Timing", "Genetics", logs_path, time_evocube);
+        fillLogInfo("Timing", "PostGenetics", logs_path, time_post_evo);
+
+        fillLogInfo("#generations", logs_path, std::to_string(n_generations));
+        fillLogInfo("#mutations_per_gen", logs_path, std::to_string(max_mut));
+
+        // TODO fill logs:
+        // mesh info
+        // evaluator info for Individuals
+        // hexes info
+    }
+    else { // ---- VISUALIZATION ---- //
         igl::opengl::glfw::Viewer viewer;
         viewer.append_mesh();
         int orig_id = viewer.data_list[0].id;
@@ -369,56 +426,6 @@ int main(int argc, char *argv[]){
         viewer.core().background_color = Eigen::Vector4f(202.0/255.0, 190.0/255.0, 232.0/255.0, 1.0);
         viewer.launch();
 
-    }
-
-    else { // !show_ui
-        std::string save_path = argv[2];
-        Eigen::VectorXi save_labeling = final_indiv->getLabeling();
-
-        // TODO save polycube
-        std::cout << "Saving to:" << save_path << std::endl;
-        saveFlagging(save_path + "/labeling.txt", save_labeling);
-        saveFlaggingOnTets(save_path + "/labeling_on_tets.txt", save_path + "/tris_to_tets.txt", save_labeling);
-
-        saveFlagging(save_path + "/labeling_init.txt", labeling_init);
-        igl::writeOBJ(save_path + "/fast_polycube_surf.obj", def_V, F);
-
-        std::string logs_path = save_path + "/logs.json";
-        final_indiv->fillIndivLogInfo(logs_path, "LabelingFinal");
-
-        std::shared_ptr<LabelingIndividual> graph_cut_indiv = std::make_shared<LabelingIndividual>(LabelingIndividual(evo, qle, labeling_init));
-        graph_cut_indiv->updateChartsAndTPs(true);
-        graph_cut_indiv->fillIndivLogInfo(logs_path, "LabelingGraphCut");
-
-        Eigen::VectorXi normal_labeling = normalFlagging(V, F);
-        std::shared_ptr<LabelingIndividual> normal_indiv = std::make_shared<LabelingIndividual>(LabelingIndividual(evo, qle, normal_labeling));
-        normal_indiv->updateChartsAndTPs(true);
-        normal_indiv->fillIndivLogInfo(logs_path, "LabelingNormal");
-
-        auto start_time = std::chrono::system_clock::now();
-        std::time_t start_timet = std::chrono::system_clock::to_time_t(start_time);
-        fillLogInfo("FinishTime", logs_path, std::ctime(&start_timet));
-
-        // ALL THESE ARE IN CPU TIME! Since it's //, the sum is > to time_evocube
-        fillLogInfo("Timing", "CreateIndiv", logs_path, sum_time_create_indiv);
-        fillLogInfo("Timing", "Cross", logs_path, sum_time_cross);
-        fillLogInfo("Timing", "Mutations", logs_path, sum_time_mut);
-        fillLogInfo("Timing", "ChartsAndTps", logs_path, sum_time_chart);
-        fillLogInfo("Timing", "Archive", logs_path, sum_time_archive);
-        fillLogInfo("Timing", "Eval", logs_path, sum_time_eval);
-
-        // Real-world time
-        fillLogInfo("Timing", "PreGenetics", logs_path, time_init_evo);
-        fillLogInfo("Timing", "Genetics", logs_path, time_evocube);
-        fillLogInfo("Timing", "PostGenetics", logs_path, time_post_evo);
-
-        fillLogInfo("#generations", logs_path, std::to_string(n_generations));
-        fillLogInfo("#mutations_per_gen", logs_path, std::to_string(max_mut));
-
-        // TODO fill logs:
-        // mesh info
-        // evaluator info for Individuals
-        // hexes info
     }
 
     return 0;

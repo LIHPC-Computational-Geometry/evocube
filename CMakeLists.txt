@@ -47,14 +47,14 @@ target_link_libraries(viz_tet ${IGL_VIEWER_LIBS} igl::tetgen igl::png)
 add_executable(jacob_test app/jacob_test.cpp ${SRCFILES})
 target_link_libraries(jacob_test ${IGL_VIEWER_LIBS} ${EVOCUBE_LIBS})
 
-add_executable(flagging_viewer app/flagging_viewer.cpp ${SRCFILES})
-target_link_libraries(flagging_viewer ${IGL_VIEWER_LIBS} OpenMP::OpenMP_CXX)
+#add_executable(flagging_viewer app/flagging_viewer.cpp ${SRCFILES})
+#target_link_libraries(flagging_viewer ${IGL_VIEWER_LIBS} OpenMP::OpenMP_CXX)
 
 add_executable(edit_labeling app/edit_labeling.cpp ${SRCFILES})
 target_link_libraries(edit_labeling ${EVOCUBE_LIBS} ${IGL_VIEWER_LIBS})
 
-add_executable(test_greedy app/test_greedy.cpp ${SRCFILES})
-target_link_libraries(test_greedy ${IGL_VIEWER_LIBS} ${EVOCUBE_LIBS} igl::tetgen)
+add_executable(evolabel app/evolabel.cpp ${SRCFILES})
+target_link_libraries(evolabel ${IGL_VIEWER_LIBS} ${EVOCUBE_LIBS} igl::tetgen)
 
 add_executable(init_from_folder app/init_from_folder.cpp ${SRCFILES})
 target_link_libraries(init_from_folder igl::core igl::tetgen ${EVOCUBE_LIBS})

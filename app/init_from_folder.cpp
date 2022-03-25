@@ -10,6 +10,8 @@
 #include "tet_boundary.h"
 #include "logging.h"
 
+#define PREPROCESS_APP "../../preprocess_polycube/build/preprocess"
+
 int main(){
     enum INPUT_TYPE {TRI_OBJ, TRI_STL, CAD_STEP, TET_MESH};
 
@@ -21,18 +23,22 @@ int main(){
     // OUTPUT FOLDER
     std::string output_path = "../data/DATASET2/OM_smooth/";
 
-    bool tet_mesh_already_computed = true;
+    // COMPUTING OPTIONS
+    bool tet_mesh_already_computed = true; // computes tets from surface/CAD 
+                                           // + preprocess tet mesh (split some tets and edges, very slow) 
+    bool labeling_already_computed = false; // Calls test_greedy
+    bool hexes_already_computed = false; // Simple hexex-based method, no padding, no smoothing
+
+    // DEBUG OPTIONS
+    bool break_after_first = false;
     bool skip_first = false;
     bool skip_if_folder_exists = false;
-    bool break_after_first = false;
-    bool labeling_already_computed = true;
-    bool hexes_already_computed = true;
 
     //input_path = "../data/DATASET/OM_cad_meshes/";
     // "../data/2019-OctreeMeshing/input/smooth/"
 
 
-    //*
+    /*
     input_path = "../data/2019-OctreeMeshing/input/smooth/";
     input_type = TRI_OBJ;
     expected_extension = "obj";
@@ -76,7 +82,7 @@ int main(){
     
     // -------------------- INIT_FROM_FOLDER --------------------
 
-    std::string path_to_preprocess_app = "../../preprocess_polycube/build/preprocess";
+    std::string path_to_preprocess_app = PREPROCESS_APP;
 
     // Output names (you probably shouldn't change these)
     std::string tet_output = "/tetra.mesh";
@@ -111,6 +117,7 @@ int main(){
             continue;
         }
 
+        // ---- COMPUTE TET MESH + SPLIT DOUBLE BOUNDARY TETS ---- //
         if (!tet_mesh_already_computed){
             if (std::filesystem::is_directory(new_folder)){
                 std::filesystem::remove_all(new_folder);
@@ -213,30 +220,28 @@ int main(){
             computeTetMeshBoundary(TT, TV, new_folder + output_tris_to_tets, boundary_obj_path);
         } // !tet_mesh_already_computed
         
+        // ---- COMPUTE LABELING ---- //
         if (!labeling_already_computed){
             std::string logs_path = new_folder + logs_file;
             resetLogFile(logs_path);
 
-            std::string command_labeling = "./test_greedy " + boundary_obj_path + " " + new_folder;
+            std::string command_labeling = "./evolabel " + boundary_obj_path + " " + new_folder;
             int result_labeling = system(command_labeling.c_str());
         }
 
+        // ---- COMPUTE HEX MESH (SIMPLE METHOD) ---- //
         if (!hexes_already_computed){
             std::string scale = "1.3";
-            //std::string command_hexex = "./polycube_withHexEx " + output_mesh + " " + new_folder + output_labeling_on_tets + " " + new_folder + output_hex + " " + scale;
             std::string command_hexex = "./polycube_withHexEx " + new_folder + " " + scale;
             int result_hexex = system(command_hexex.c_str());
         }
 
+        // ---- GENERATE FIGURES ---- //
         std::string command_figure = "./figure_generator " + file_without_extension + " 0 " + output_path;
         command_figure += " && ./figure_generator " + file_without_extension + " 1 " + output_path;
         command_figure += " && ./figure_generator " + file_without_extension + " 4 " + output_path;
         int result_hexex = system(command_figure.c_str());
         
-
-        //./test_greedy ../data/DATASET2/OM_smoothscrewdriver_input_tri/boundary.obj 0
-        //./polycube_withHexEx ../data/DATASET2/medium_mambo/M8/tetra.mesh ../data/DATASET2/medium_mambo/M8/labeling_on_tets.txt ../data/DATASET2/medium_mambo/M8/hexes.mesh 1.4
-
         if (break_after_first){
             std::cout << "BREAKING" << std::endl;
             break;
