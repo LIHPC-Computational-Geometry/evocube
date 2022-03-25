@@ -166,7 +166,6 @@ int main(){
                 if (result) {
                     coloredPrint("FAILURE on " + input_stl, "red");
                     break;
-                    continue;
                 }
                 readDotMeshTet(output_mesh, TV, TT);
                 break;
@@ -227,6 +226,7 @@ int main(){
 
             std::string command_labeling = "./evolabel " + boundary_obj_path + " " + new_folder;
             int result_labeling = system(command_labeling.c_str());
+            if (result_labeling == 2) return 2;
         }
 
         // ---- COMPUTE HEX MESH (SIMPLE METHOD) ---- //
@@ -234,6 +234,7 @@ int main(){
             std::string scale = "1.3";
             std::string command_hexex = "./polycube_withHexEx " + new_folder + " " + scale;
             int result_hexex = system(command_hexex.c_str());
+            if (result_hexex == 2) return 2;
         }
 
         // ---- GENERATE FIGURES ---- //
