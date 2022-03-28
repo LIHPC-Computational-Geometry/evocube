@@ -1,3 +1,5 @@
+#pragma once
+
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -42,18 +44,8 @@ private:
     /**
      * @brief Insert a 2 by \c values.size() table
      * @param values List of { column name , value }
+     *               If a column name contains a '#', it will be escaped
      */
     void add_table(const std::vector<std::pair<std::string,std::string>>& values);
-
-    /**
-     * @brief Insert a table containing metrics of a labelling
-     * @param found_valid_labelling If a valid labelling is found
-     * @param invalid_patches       The number of invalid patches
-     * @param invalid_corners       The number of invalid corners
-     * @param invalid_boundaries    The number of invalid boundaries
-     * @param nb_turning_points     The number of turning points
-     * @param fidelity              The fidelity value
-     */
-    void add_metrics_table(bool found_valid_labelling, int invalid_patches, int invalid_corners, int invalid_boundaries, int nb_turning_points, double fidelity);
 
 };
