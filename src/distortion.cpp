@@ -68,11 +68,10 @@ void computeDisto(const Eigen::MatrixXd& V1,
 #pragma omp parallel for
     for (int f_id = 0; f_id < F.rows(); f_id++){
         Eigen::JacobiSVD<Eigen::Matrix2d> svd(jacobians[f_id], Eigen::ComputeThinU | Eigen::ComputeThinV);
-        //disto(f_id) = svd.singularValues()(0) + 1.0 / svd.singularValues()(1) - 2.0;
         double s1 = svd.singularValues()(0);
         double s2 = svd.singularValues()(1);
-        disto(f_id) =  s1 * s2 + 1.0 / (s1 * s2) - 2.0;
-        disto(f_id) +=  s1 / s2 + s2 / s1 - 2.0;
+        disto(f_id) =  s1 * s2 + 1.0 / (s1 * s2) - 2.0; // area
+        disto(f_id) +=  s1 / s2 + s2 / s1 - 2.0; // angle
     }
 }
 
@@ -91,4 +90,44 @@ double integrateDistortion(const Eigen::VectorXd& A,
 
     return (A.array() * distop.array()).sum() / A.sum(); //+ static_cast<double>(n_inf * max_disto);
 
+}
+
+// Spherical Parametrization and Remeshing
+// Praun & Hoppe
+double computeStretch(const Eigen::VectorXd& A, double A_m, double A_d,
+                      std::vector<std::pair<double, double>> per_tri_singular_values){
+    
+    double sum = 0;
+    for (int f_id = 0; f_id < per_tri_singular_values.size(); f_id++){
+        double s1 = per_tri_singular_values[f_id].first;
+        double s2 = per_tri_singular_values[f_id].second;
+        sum += A(f_id) * (s1 * s1 + s2 * s2) / 2.0;
+    }
+    sum /= A.sum();
+
+    return (A_m / A_d) * (1.0 / std::pow(sum, 2)); 
+}
+
+// PolyCube-Maps
+// Tarini & Hormann & Cignoni & Montani
+double computeAreaDisto(const Eigen::VectorXd& A, std::vector<std::pair<double, double>> per_tri_singular_values){
+    double sum = 0;
+    for (int f_id = 0; f_id < per_tri_singular_values.size(); f_id++){
+        double s1 = per_tri_singular_values[f_id].first;
+        double s2 = per_tri_singular_values[f_id].second;
+        sum += A(f_id) * 0.5 * (s1 * s2 + 1.0 / (s1 * s2));
+    }
+
+    return sum / A.sum();
+}
+
+double computeAngleDisto(const Eigen::VectorXd& A, std::vector<std::pair<double, double>> per_tri_singular_values){
+    double sum = 0;
+    for (int f_id = 0; f_id < per_tri_singular_values.size(); f_id++){
+        double s1 = per_tri_singular_values[f_id].first;
+        double s2 = per_tri_singular_values[f_id].second;
+        sum += A(f_id) * 0.5 * (s1 / s2 + s2 / s1);
+    }
+
+    return sum / A.sum();
 }

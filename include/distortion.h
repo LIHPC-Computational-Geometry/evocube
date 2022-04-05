@@ -26,3 +26,15 @@ void computeDisto(const Eigen::MatrixXd& V1,
 
 double integrateDistortion(const Eigen::VectorXd& A,
                           const Eigen::VectorXd& disto);
+
+// --- Stand-alone functions for polycube metrics --- // 
+
+// Spherical Parametrization and Remeshing
+// Praun & Hoppe
+double computeStretch(const Eigen::VectorXd& A, double A_m, double A_d,
+                      std::vector<std::pair<double, double>> per_tri_singular_values);
+
+// PolyCube-Maps
+// Tarini & Hormann & Cignoni & Montani
+double computeAreaDisto(const Eigen::VectorXd& A, std::vector<std::pair<double, double>> per_tri_singular_values);
+double computeAngleDisto(const Eigen::VectorXd& A, std::vector<std::pair<double, double>> per_tri_singular_values);

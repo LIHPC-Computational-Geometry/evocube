@@ -65,6 +65,9 @@ target_link_libraries(polycube_withHexEx igl::core igl::tetgen ${EVOCUBE_LIBS})
 add_executable(test_scaled_jacobian app/test_scaled_jacobian.cpp ${SRCFILES})
 target_link_libraries(test_scaled_jacobian igl::core igl::tetgen ${EVOCUBE_LIBS})
 
+add_executable(measurement app/measurement.cpp ${SRCFILES})
+target_link_libraries(measurement igl::core igl::tetgen ${EVOCUBE_LIBS})
+
 add_executable(figure_generator ${SRCFILES} app/figure_generator.cpp)
 include_directories(include)
 target_link_libraries(figure_generator igl::core igl::tetgen igl::opengl_glfw igl::png ${EVOCUBE_LIBS})
