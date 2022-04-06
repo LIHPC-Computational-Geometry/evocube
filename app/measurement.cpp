@@ -109,7 +109,12 @@ int main(int argc, char *argv[]){
     computeDisto(V1, V2, F, N, N_def, disto);
     std::cout << "Integrated:\t" << integrateDistortion(A1, disto) << std::endl;
 
-    // TODO fill logs
-
-    // measure similarity % between initial graph cut labeling and final labeling?
+    // fill logs
+    std::string logs_path = base_name + "/logs.json";
+    fillLogInfo("PolycubeMeasures", "ReferenceArea", logs_path, A_m);
+    fillLogInfo("PolycubeMeasures", "DeformedArea", logs_path, A_d);
+    fillLogInfo("PolycubeMeasures", "Stretch", logs_path, stretch);
+    fillLogInfo("PolycubeMeasures", "AreaDistortion", logs_path, area_disto);
+    fillLogInfo("PolycubeMeasures", "AngleDistortion", logs_path, angle_disto);
+    std::cout << logs_path << " updated" << std::endl;
 }
