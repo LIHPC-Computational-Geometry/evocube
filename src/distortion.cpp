@@ -131,3 +131,15 @@ double computeAngleDisto(const Eigen::VectorXd& A, std::vector<std::pair<double,
 
     return sum / A.sum();
 }
+
+// Computing Surface PolyCube-Maps by Constrained Voxelization
+// Yang, Fu, Liu
+double computeIsometricDisto(const Eigen::VectorXd& A, std::vector<std::pair<double, double>> per_tri_singular_values){
+    double sum = 0;
+    for (int f_id = 0; f_id < per_tri_singular_values.size(); f_id++){
+        double s1 = per_tri_singular_values[f_id].first;
+        double s2 = per_tri_singular_values[f_id].second;
+        sum += std::max(s1, 1.0 / s2) * A(f_id);
+    }
+    return sum / A.sum();
+}

@@ -6,6 +6,8 @@
 #include <igl/remove_unreferenced.h>
 #include <igl/writeOBJ.h>
 
+#include "logging.h"
+
 BndToTetConverter::BndToTetConverter(std::string input_file){
     int line;
     std::ifstream file(input_file);
@@ -88,5 +90,30 @@ void computeTetMeshBoundary(const Eigen::MatrixXi& tets, const Eigen::MatrixXd& 
     igl::writeOBJ(output_bnd, NV, NF);
 }
 
+void tetVerticesToBoundaryVertices(const Eigen::MatrixXd& Vb, const Eigen::MatrixXi& Fb, 
+                                   const Eigen::MatrixXd& V_tets, const Eigen::MatrixXi& tets, 
+                                   std::string corres_path,
+                                   Eigen::MatrixXd& Vf){
 
+    Vf = Eigen::MatrixXd::Zero(Vb.rows(), Vb.cols());
+    BndToTetConverter conv(corres_path);
+
+    std::vector<std::vector<int>> corres = {
+        {1, 3, 2},
+        {0, 2, 3},
+        {0, 3, 1},
+        {0, 1, 2}	
+    };
+
+    if (Fb.rows() != conv.table_.rows()) coloredPrint("Correspondence mismatch", "red");
+
+    for (int i=0; i<Fb.rows(); i++){
+        int f_tet = conv.table_(i);
+        int tet_id = f_tet / 4;
+        int f_in_tet = f_tet % 4;
+        Vf.row(Fb(i, 0)) = V_tets.row(tets(tet_id, corres[f_in_tet][0]));
+        Vf.row(Fb(i, 1)) = V_tets.row(tets(tet_id, corres[f_in_tet][1]));
+        Vf.row(Fb(i, 2)) = V_tets.row(tets(tet_id, corres[f_in_tet][2]));
+    }
+}
 

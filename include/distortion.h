@@ -38,3 +38,7 @@ double computeStretch(const Eigen::VectorXd& A, double A_m, double A_d,
 // Tarini & Hormann & Cignoni & Montani
 double computeAreaDisto(const Eigen::VectorXd& A, std::vector<std::pair<double, double>> per_tri_singular_values);
 double computeAngleDisto(const Eigen::VectorXd& A, std::vector<std::pair<double, double>> per_tri_singular_values);
+
+// Computing Surface PolyCube-Maps by Constrained Voxelization
+// Yang, Fu, Liu
+double computeIsometricDisto(const Eigen::VectorXd& A, std::vector<std::pair<double, double>> per_tri_singular_values);
