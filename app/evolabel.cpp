@@ -36,7 +36,8 @@ int main(int argc, char *argv[]){
 
     bool show_ui = (argc <= 2);
 
-    std::srand(std::time(nullptr));
+    //std::srand(std::time(nullptr));
+    std::srand(1);
 
     auto time_before_init = std::chrono::steady_clock::now();
 
@@ -75,10 +76,10 @@ int main(int argc, char *argv[]){
 
     auto pickMutation = [](double progress_percentage){
         double r = static_cast<double>(std::rand() % 1000)/1000.0;
-        double prob0 = 0.4 - 0.3 * progress_percentage;
-        double prob1 = 0.0 + 0.3 * progress_percentage;
-        double prob2 = 0.2 - 0.0 * progress_percentage;
-        double prob3 = 0.4 - 0.0 * progress_percentage;
+        double prob0 = 0.5 - 0.2 * progress_percentage;
+        double prob1 = 0.0 + 0.2 * progress_percentage;
+        double prob2 = 0.3 - 0.0 * progress_percentage;
+        double prob3 = 0.2 - 0.0 * progress_percentage;
         if (r < prob0) return 0;
         if (r < prob0 + prob1) return 1;
         if (r < prob0 + prob1 + prob2) return 2;
@@ -97,8 +98,13 @@ int main(int argc, char *argv[]){
 
     auto time_before_evocube = std::chrono::steady_clock::now();
 
-    int n_generations = 30;
+    int n_generations = 40;
     int max_mut = 100;
+
+    int convergence_stop = 3; // If score doesn't improve for convergence_stop consecutive iterations, stop
+    int convergence_count = 0;
+    double previous_best_score = -1; 
+
     for (int generation=0; generation<n_generations; generation++){
 
         evo->timestamp_ ++;
@@ -111,6 +117,18 @@ int main(int argc, char *argv[]){
         new_gen.resize(max_mut);
         new_scores.resize(max_mut);
 
+        if (archive.bestScore() != previous_best_score){
+            convergence_count = 0;
+            previous_best_score = archive.bestScore(); 
+        }
+        else {
+            convergence_count ++;
+            if (convergence_count > convergence_stop){
+                coloredPrint("Reached convergence, stopping labeling optimization", "green");
+                n_generations = generation;
+                break;
+            }
+        }
 
         // -- Generate new individuals through MUTATIONS -- //
         #pragma omp parallel for

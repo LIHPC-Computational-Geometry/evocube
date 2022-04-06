@@ -65,4 +65,6 @@ int main(int argc, char *argv[]){
     std::cout << "Integrated:\t" << integrateDistortion(A1, disto) << std::endl;
 
     // fill logs
+
+    // measure similarity % between initial graph cut labeling and final labeling?
 }
