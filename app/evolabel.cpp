@@ -311,11 +311,7 @@ int main(int argc, char *argv[]){
         fillLogInfo("#generations", logs_path, std::to_string(n_generations));
         fillLogInfo("#mutations_per_gen", logs_path, std::to_string(max_mut));
 
-        //evo.fillLogInfo(); // TODO
-
-        // TODO fill logs:
-        // mesh info
-        // hexes info
+        evo->fillMeshLogInfo(logs_path); 
     }
     else { // ---- VISUALIZATION ---- //
         igl::opengl::glfw::Viewer viewer;

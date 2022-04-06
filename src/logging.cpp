@@ -61,6 +61,10 @@ void fillLogInfo(std::string tag1, std::string tag2, std::string filepath, doubl
     fillLogInfo(tag1, tag2, filepath, std::to_string(value));
 }
 
+void fillLogInfo(std::string tag1, std::string tag2, std::string filepath, int value){
+    fillLogInfo(tag1, tag2, filepath, std::to_string(value));
+}
+
 void removeLogInfo(std::string tag, std::string filepath){
     nlohmann::json j = readJSON(filepath);
     j.erase(tag);

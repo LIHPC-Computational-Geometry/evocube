@@ -53,6 +53,12 @@ public:
         coloredPrint("An Evocube bites the dust...", "yellow");
     }
 
+    void fillMeshLogInfo(std::string logs_path){
+        fillLogInfo("InputTris", "vertices", logs_path, std::to_string(V_.rows()));
+        fillLogInfo("InputTris", "faces", logs_path, std::to_string(F_.rows()));
+        fillLogInfo("InputTris", "AvgEdgeLength", logs_path, l_avg_);
+    }
+
 //private:
     // Set by constructor
     const Eigen::MatrixXd V_; 
