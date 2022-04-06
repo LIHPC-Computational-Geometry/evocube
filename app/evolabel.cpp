@@ -278,15 +278,18 @@ int main(int argc, char *argv[]){
 
         std::string logs_path = save_path + "/logs.json";
         final_indiv->fillIndivLogInfo(logs_path, "LabelingFinal");
+        evaluator.fillIndivLogInfo(logs_path, *final_indiv, "LabelingFinal");
 
         std::shared_ptr<LabelingIndividual> graph_cut_indiv = std::make_shared<LabelingIndividual>(LabelingIndividual(evo, qle, labeling_init));
         graph_cut_indiv->updateChartsAndTPs(true);
         graph_cut_indiv->fillIndivLogInfo(logs_path, "LabelingGraphCut");
+        evaluator.fillIndivLogInfo(logs_path, *graph_cut_indiv, "LabelingGraphCut");
 
         Eigen::VectorXi normal_labeling = normalFlagging(V, F);
         std::shared_ptr<LabelingIndividual> normal_indiv = std::make_shared<LabelingIndividual>(LabelingIndividual(evo, qle, normal_labeling));
         normal_indiv->updateChartsAndTPs(true);
         normal_indiv->fillIndivLogInfo(logs_path, "LabelingNormal");
+        evaluator.fillIndivLogInfo(logs_path, *normal_indiv, "LabelingNormal");
 
         auto start_time = std::chrono::system_clock::now();
         std::time_t start_timet = std::chrono::system_clock::to_time_t(start_time);
@@ -308,9 +311,10 @@ int main(int argc, char *argv[]){
         fillLogInfo("#generations", logs_path, std::to_string(n_generations));
         fillLogInfo("#mutations_per_gen", logs_path, std::to_string(max_mut));
 
+        //evo.fillLogInfo(); // TODO
+
         // TODO fill logs:
         // mesh info
-        // evaluator info for Individuals
         // hexes info
     }
     else { // ---- VISUALIZATION ---- //

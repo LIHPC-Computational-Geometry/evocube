@@ -217,7 +217,7 @@ int main(int argc, char *argv[]){
                     for (int fc=0; fc<3; fc++){
                         for (int d=0; d<2; d++) {
                             double u = V_poly(F(f, fc), (d + axes(f) + 1) % 3);
-                            u /= 1;
+                            u /= 2;
                             U(3*f+fc, d) = u;
                         }
                     }
