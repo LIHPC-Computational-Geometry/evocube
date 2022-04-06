@@ -74,22 +74,22 @@ bool LatexDoc::add_mesh(std::filesystem::path path_to_mesh_folder) {
     if(logs_path.good()) {
         nlohmann::json j;
         logs_path >> j;
-        if (j.contains("LabelingFinal")) {
+        //to get all the items in LabelingFinal
+        // for (auto& el : j["/LabelingFinal"_json_pointer].items() ) {
+        //     std::cout << el.key() << " " << el.value() << std::endl;
+        // }
 
-            //to get all the items in LabelingFinal
-            // for (auto& el : j["/LabelingFinal"_json_pointer].items() ) {
-            //     std::cout << el.key() << " " << el.value() << std::endl;
-            // }
-
-            //write only some items
-            //put an empty string if the key doesn't exist
-            std::vector<std::pair<std::string,std::string>> table_values;
-            table_values.push_back(std::make_pair("#corners",       j["/LabelingFinal"_json_pointer].value<std::string>("/#corners"_json_pointer,       "")));
-            table_values.push_back(std::make_pair("#tps",           j["/LabelingFinal"_json_pointer].value<std::string>("/#tps"_json_pointer,           "")));
-            table_values.push_back(std::make_pair("InvalidTotal",   j["/LabelingFinal"_json_pointer].value<std::string>("/InvalidTotal"_json_pointer,   "")));
-            table_values.push_back(std::make_pair("fidelity",       j["/LabelingFinal"_json_pointer].value<std::string>("/fidelity"_json_pointer,       "")));
-            add_table(table_values);
-        }
+        //write only some items
+        //put an empty string if the key doesn't exist
+        std::vector<std::pair<std::string,std::string>> table_values;
+        table_values.push_back(std::make_pair("#corners",           j["/LabelingFinal"_json_pointer].value<std::string>("/#corners"_json_pointer,           "")));
+        table_values.push_back(std::make_pair("#tps",               j["/LabelingFinal"_json_pointer].value<std::string>("/#tps"_json_pointer,               "")));
+        table_values.push_back(std::make_pair("InvalidTotal",       j["/LabelingFinal"_json_pointer].value<std::string>("/InvalidTotal"_json_pointer,       "")));
+        table_values.push_back(std::make_pair("fidelity",           j["/LabelingFinal"_json_pointer].value<std::string>("/fidelity"_json_pointer,           "")));
+        table_values.push_back(std::make_pair("angle/area dist.",   j["/PolycubeMeasures"_json_pointer].value<std::string>("/AngleDistortion"_json_pointer, "") + "/" +
+                                                                    j["/PolycubeMeasures"_json_pointer].value<std::string>("/AreaDistortion"_json_pointer,  "")));
+        table_values.push_back(std::make_pair("stretch",            j["/PolycubeMeasures"_json_pointer].value<std::string>("/Stretch"_json_pointer,         "")));
+        add_table(table_values);
     }
 
     incomplete_page |= add_pictures(path_to_mesh_folder,1,mesh_name + ", input");

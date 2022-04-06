@@ -5,6 +5,8 @@
 #include <igl/boundary_facets.h>
 #include <igl/remove_unreferenced.h>
 #include <iostream>
+#include <iomanip>
+#include <sstream>
 
 #include "distortion.h"
 #include "mesh_io.h"
@@ -111,10 +113,15 @@ int main(int argc, char *argv[]){
 
     // fill logs
     std::string logs_path = base_name + "/logs.json";
+    std::stringstream stretch_rounded, area_disto_rounded, angle_disto_rounded;
     fillLogInfo("PolycubeMeasures", "ReferenceArea", logs_path, A_m);
     fillLogInfo("PolycubeMeasures", "DeformedArea", logs_path, A_d);
-    fillLogInfo("PolycubeMeasures", "Stretch", logs_path, stretch);
-    fillLogInfo("PolycubeMeasures", "AreaDistortion", logs_path, area_disto);
-    fillLogInfo("PolycubeMeasures", "AngleDistortion", logs_path, angle_disto);
+    //reduce the precision : the values will be printed in the supplemental and too many digits is superfluous
+    stretch_rounded << std::fixed << std::setprecision(3) << stretch;
+    area_disto_rounded << std::fixed << std::setprecision(3) << area_disto;
+    angle_disto_rounded << std::fixed << std::setprecision(3) << angle_disto;
+    fillLogInfo("PolycubeMeasures", "Stretch", logs_path, stretch_rounded.str());
+    fillLogInfo("PolycubeMeasures", "AreaDistortion", logs_path, area_disto_rounded.str());
+    fillLogInfo("PolycubeMeasures", "AngleDistortion", logs_path, angle_disto_rounded.str());
     std::cout << logs_path << " updated" << std::endl;
 }
