@@ -7,6 +7,7 @@
 #include <iostream>
 #include <iomanip>
 #include <sstream>
+#include <filesystem>
 
 #include "distortion.h"
 #include "mesh_io.h"
@@ -24,8 +25,14 @@ void tetToBnd(const Eigen::MatrixXd& V_tets, const Eigen::MatrixXi& tets,
 
 int main(int argc, char *argv[]){
 
-    std::string base_name = "../data/DATASET2/OM_smooth/bunny_input_tri";
-    if (argc > 1) base_name = argv[1];
+    std::string input_filepath = "../data/DATASET2/OM_smooth/bunny_input_tri/boundary.obj";
+    if (argc > 1) input_filepath = argv[1];
+
+    std::string polycube_filepath = "../data/DATASET2/OM_smooth/bunny_input_tri/fast_polycube_surf.obj";
+    if (argc > 2) polycube_filepath = argv[2];
+
+    std::string save_path = std::filesystem::path(polycube_filepath).parent_path().string();//by default, write the logs inside the same folder as the polycube file
+    if (argc > 3) save_path = argv[3];
 
     // TODO cleanup and have two modes: one for tri meshes, and one for tet meshes
 
@@ -46,6 +53,8 @@ int main(int argc, char *argv[]){
     F = F1;
     //*/
 
+    igl::readOBJ(input_filepath, V1, F);
+    igl::readOBJ(polycube_filepath, V2, F);
     
     ///*
     // Checking input validity
@@ -112,7 +121,7 @@ int main(int argc, char *argv[]){
     std::cout << "Integrated:\t" << integrateDistortion(A1, disto) << std::endl;
 
     // fill logs
-    std::string logs_path = base_name + "/logs.json";
+    std::string logs_path = save_path + "/logs.json";
     std::stringstream stretch_rounded, area_disto_rounded, angle_disto_rounded;
     fillLogInfo("PolycubeMeasures", "ReferenceArea", logs_path, A_m);
     fillLogInfo("PolycubeMeasures", "DeformedArea", logs_path, A_d);

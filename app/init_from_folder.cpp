@@ -97,6 +97,7 @@ int main(){
     std::string output_bnd = "/boundary.obj";
     std::string output_hex = "/hexes.mesh";
     std::string logs_file = "/logs.json";
+    std::string polycube_bnd = "/fast_polycube_surf.obj";
 
     std::set<std::filesystem::path> entries; // set orders entries
     for (auto &entry : std::filesystem::directory_iterator(input_path)){
@@ -238,6 +239,12 @@ int main(){
             std::string command_labeling = "./evolabel " + boundary_obj_path + " " + new_folder;
             int result_labeling = system(command_labeling.c_str());
             if (result_labeling == 2) return 2;
+
+            //compute polycube distortion. 2 inputs : boundary.obj and polycube surface. Will update the JSON in the same folder as the polycube
+            std::string command_measurement = "./measurement " + boundary_obj_path + " " + new_folder + polycube_bnd;
+            coloredPrint(command_measurement,"cyan");
+            int result_measurement = system(command_measurement.c_str());
+            if (result_measurement == 2) return 2;
         }
 
         // ---- COMPUTE HEX MESH (SIMPLE METHOD) ---- //
