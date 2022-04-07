@@ -311,6 +311,8 @@ int main(int argc, char *argv[]){
         fillLogInfo("#generations", logs_path, std::to_string(n_generations));
         fillLogInfo("#mutations_per_gen", logs_path, std::to_string(max_mut));
 
+        fillLogInfo("GraphCutParams", "CompactCoeff", logs_path, compact_coeff);
+        fillLogInfo("GraphCutParams", "FidelityCoeff", logs_path, fidelity_coeff);
         evo->fillMeshLogInfo(logs_path); 
     }
     else { // ---- VISUALIZATION ---- //

@@ -45,6 +45,14 @@ void resetLogFile(std::string filepath){
     writeJSON(nlohmann::json(), filepath);
 }
 
+std::string readLogsValue(std::string tag1, std::string tag2, std::string filepath){
+    nlohmann::json j = readJSON(filepath);
+    std::cout << "ok" << std::endl;
+    if (j.contains(tag1) && j[tag1].contains(tag2))
+        return j[tag1][tag2];
+    return "null";
+}
+
 void fillLogInfo(std::string tag, std::string filepath, std::string value){
     nlohmann::json j = readJSON(filepath);
     j[tag] = value;

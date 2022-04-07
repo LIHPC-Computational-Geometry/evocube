@@ -18,6 +18,7 @@ void coloredPrint(std::string text, std::string color);
 
 void resetLogFile(std::string filepath);
 
+std::string readLogsValue(std::string tag1, std::string tag2, std::string filepath);
 void fillLogInfo(std::string tag, std::string filepath, std::string value);
 void fillLogInfo(std::string tag1, std::string tag2, std::string filepath, std::string value);
 void fillLogInfo(std::string tag1, std::string tag2, std::string filepath, double value);

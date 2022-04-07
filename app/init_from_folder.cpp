@@ -28,13 +28,14 @@ int main(){
     // COMPUTING OPTIONS
     bool tet_mesh_already_computed = true; // computes tets from surface/CAD 
                                            // + preprocess tet mesh (split some tets and edges, very slow) 
-    bool labeling_already_computed = false; // Calls test_greedy
+    bool labeling_already_computed = false; // Calls evolabel
     bool hexes_already_computed = false; // Simple hexex-based method, no padding, no smoothing
 
     // DEBUG OPTIONS
     bool break_after_first = false;
     bool skip_first = false;
     bool skip_if_folder_exists = false;
+    bool skip_already_valid = true;
 
     //input_path = "../data/DATASET/OM_cad_meshes/";
     // "../data/2019-OctreeMeshing/input/smooth/"
@@ -117,9 +118,15 @@ int main(){
         std::string new_folder = output_path + file_without_extension;
         std::string output_mesh = new_folder + tet_output;
         std::string boundary_obj_path = new_folder + output_bnd;
+        std::string logs_path = new_folder + logs_file;
 
         if (skip_if_folder_exists && std::filesystem::is_directory(new_folder)){
             std::cout << "Folder already exists, skipping " << new_folder << std::endl;
+            continue;
+        }
+
+        if (skip_already_valid && readLogsValue("LabelingFinal", "InvalidTotal", logs_path) == "0"){
+            std::cout << "Labeling already valid, skipping " << new_folder << std::endl;
             continue;
         }
 
@@ -226,7 +233,6 @@ int main(){
         
         // ---- COMPUTE LABELING ---- //
         if (!labeling_already_computed){
-            std::string logs_path = new_folder + logs_file;
             resetLogFile(logs_path);
 
             std::string command_labeling = "./evolabel " + boundary_obj_path + " " + new_folder;
