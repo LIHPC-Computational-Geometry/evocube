@@ -44,7 +44,7 @@ void LatexDoc::add_subpage(std::filesystem::path path_to_subpage) {
     ofs << "%" << std::endl;
 }
 
-bool LatexDoc::add_mesh(std::filesystem::path path_to_mesh_folder) {
+bool LatexDoc::add_mesh(std::filesystem::path path_to_mesh_folder, std::string polycube_tagname) {
 
     bool incomplete_page = false;
     std::string mesh_name = path_to_mesh_folder.filename(), label = "";
@@ -82,13 +82,13 @@ bool LatexDoc::add_mesh(std::filesystem::path path_to_mesh_folder) {
         //write only some items
         //put an empty string if the key doesn't exist
         std::vector<std::pair<std::string,std::string>> table_values;
-        table_values.push_back(std::make_pair("#corners",           j["/LabelingFinal"_json_pointer].value<std::string>("/#corners"_json_pointer,           "")));
-        table_values.push_back(std::make_pair("#tps",               j["/LabelingFinal"_json_pointer].value<std::string>("/#tps"_json_pointer,               "")));
-        table_values.push_back(std::make_pair("InvalidTotal",       j["/LabelingFinal"_json_pointer].value<std::string>("/InvalidTotal"_json_pointer,       "")));
-        table_values.push_back(std::make_pair("fidelity",           j["/LabelingFinal"_json_pointer].value<std::string>("/fidelity"_json_pointer,           "")));
-        table_values.push_back(std::make_pair("angle/area dist.",   j["/PolycubeMeasures"_json_pointer].value<std::string>("/AngleDistortion"_json_pointer, "") + "/" +
-                                                                    j["/PolycubeMeasures"_json_pointer].value<std::string>("/AreaDistortion"_json_pointer,  "")));
-        table_values.push_back(std::make_pair("stretch",            j["/PolycubeMeasures"_json_pointer].value<std::string>("/Stretch"_json_pointer,         "")));
+        table_values.push_back(std::make_pair("#corners",           j.value<std::string>("/LabelingFinal/#corners"_json_pointer,           "")));
+        table_values.push_back(std::make_pair("#tps",               j.value<std::string>("/LabelingFinal/#tps"_json_pointer,               "")));
+        table_values.push_back(std::make_pair("InvalidTotal",       j.value<std::string>("/LabelingFinal/InvalidTotal"_json_pointer,       "")));
+        table_values.push_back(std::make_pair("fidelity",           j.value<std::string>("/LabelingFinal/fidelity"_json_pointer,           "")));
+        table_values.push_back(std::make_pair("angle/area dist.",   j.value<std::string>(nlohmann::json::json_pointer(polycube_tagname+"/AngleDistortion"), "") + "/" +
+                                                                    j.value<std::string>(nlohmann::json::json_pointer(polycube_tagname+"/AreaDistortion"),  "")));
+        table_values.push_back(std::make_pair("stretch",            j.value<std::string>(nlohmann::json::json_pointer(polycube_tagname+"/Stretch"),         "")));
         add_table(table_values);
     }
 

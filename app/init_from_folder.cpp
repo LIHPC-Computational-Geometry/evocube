@@ -97,7 +97,8 @@ int main(){
     std::string output_bnd = "/boundary.obj";
     std::string output_hex = "/hexes.mesh";
     std::string logs_file = "/logs.json";
-    std::string polycube_bnd = "/fast_polycube_surf.obj";
+    std::string polycube_bnd_float = "/fast_polycube_surf.obj";//fast floating-point surface of the polycube
+    std::string polycube_bnd_int = "/polycube_surf_int.obj";//fast integer surface of the polycube
 
     std::set<std::filesystem::path> entries; // set orders entries
     for (auto &entry : std::filesystem::directory_iterator(input_path)){
@@ -241,10 +242,16 @@ int main(){
             if (result_labeling == 2) return 2;
 
             //compute polycube distortion. 2 inputs : boundary.obj and polycube surface. Will update the JSON in the same folder as the polycube
-            std::string command_measurement = "./measurement " + boundary_obj_path + " " + new_folder + polycube_bnd;
-            coloredPrint(command_measurement,"cyan");
-            int result_measurement = system(command_measurement.c_str());
-            if (result_measurement == 2) return 2;
+
+            std::cout << "Measures for the fast float polycube surf" << std::endl;
+            std::string command_measurement_1 = "./measurement " + boundary_obj_path + " " + new_folder + polycube_bnd_float;
+            int result_measurement_1 = system(command_measurement_1.c_str());
+            if (result_measurement_1 == 2) return 2;
+
+            std::cout << "Measures for the fast int polycube surf" << std::endl;
+            std::string command_measurement_2 = "./measurement " + boundary_obj_path + " " + new_folder + polycube_bnd_int;
+            int result_measurement_2 = system(command_measurement_2.c_str());
+            if (result_measurement_2 == 2) return 2;
         }
 
         // ---- COMPUTE HEX MESH (SIMPLE METHOD) ---- //

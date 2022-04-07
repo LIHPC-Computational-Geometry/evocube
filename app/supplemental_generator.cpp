@@ -8,8 +8,9 @@
 #include "latex.h"
 #include "logging.h"
 
-#define INPUT_DATA_PATH             "../data/"
+#define INPUT_DATA_PATH             "../output_medium_mambo/"
 #define INPUT_COVER_PAGE            "../supplemental/cover_page.tex"
+#define INPUT_POLYCUBE_TAGNAME      "/FastPolycubeFloat" //which polycube distortions (from the the log file) to insert. "/FastPolycubeFloat" or "/FastPolycubeInt"
 #define OUTPUT_SUPPLEMENTAL_PATH    "../supplemental/"
 
 int main(int argc, char** argv) {
@@ -28,7 +29,7 @@ int main(int argc, char** argv) {
 
     for(const std::filesystem::directory_entry& dir_entry : entries_sorted_by_name) {
         if(!dir_entry.is_directory()) continue;
-        nb_incomplete_meshes += latex.add_mesh(dir_entry.path());
+        nb_incomplete_meshes += latex.add_mesh(dir_entry.path(),INPUT_POLYCUBE_TAGNAME);
     }
 
     if(nb_incomplete_meshes > 0)

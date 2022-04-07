@@ -8,6 +8,7 @@
 #include <iomanip>
 #include <sstream>
 #include <filesystem>
+#include <map>
 
 #include "distortion.h"
 #include "mesh_io.h"
@@ -23,13 +24,32 @@ void tetToBnd(const Eigen::MatrixXd& V_tets, const Eigen::MatrixXi& tets,
     igl::remove_unreferenced(V_tets, Fb, NV, NF, I);
 }
 
+const std::map<std::string,std::string> polycube_filename_to_JSON_tag {
+    {"fast_polycube_surf.obj", "FastPolycubeFloat"},
+    {"polycube_surf_int.obj",  "FastPolycubeInt"}
+};
+
+#define DEFAULT_TRI_INPUT   "../data/DATASET2/OM_smooth/bunny_input_tri/boundary.obj"
+#define DEFAULT_POLYCUBE    "../data/DATASET2/OM_smooth/bunny_input_tri/fast_polycube_surf.obj"
+
 int main(int argc, char *argv[]){
 
-    std::string input_filepath = "../data/DATASET2/OM_smooth/bunny_input_tri/boundary.obj";
+    // read input name
+
+    std::string input_filepath = DEFAULT_TRI_INPUT;
     if (argc > 1) input_filepath = argv[1];
 
-    std::string polycube_filepath = "../data/DATASET2/OM_smooth/bunny_input_tri/fast_polycube_surf.obj";
+    std::string polycube_filepath = DEFAULT_POLYCUBE, polycube_filename;
     if (argc > 2) polycube_filepath = argv[2];
+    polycube_filename = std::filesystem::path(polycube_filepath).filename();
+
+    std::string JSON_tag;
+    try {
+        JSON_tag = polycube_filename_to_JSON_tag.at(polycube_filename);
+    }
+    catch (const std::out_of_range&) {
+        JSON_tag = polycube_filename;
+    }
 
     std::string save_path = std::filesystem::path(polycube_filepath).parent_path().string();//by default, write the logs inside the same folder as the polycube file
     if (argc > 3) save_path = argv[3];
@@ -123,14 +143,14 @@ int main(int argc, char *argv[]){
     // fill logs
     std::string logs_path = save_path + "/logs.json";
     std::stringstream stretch_rounded, area_disto_rounded, angle_disto_rounded;
-    fillLogInfo("PolycubeMeasures", "ReferenceArea", logs_path, A_m);
-    fillLogInfo("PolycubeMeasures", "DeformedArea", logs_path, A_d);
+    fillLogInfo(JSON_tag, "ReferenceArea", logs_path, A_m);
+    fillLogInfo(JSON_tag, "DeformedArea", logs_path, A_d);
     //reduce the precision : the values will be printed in the supplemental and too many digits is superfluous
     stretch_rounded << std::fixed << std::setprecision(3) << stretch;
     area_disto_rounded << std::fixed << std::setprecision(3) << area_disto;
     angle_disto_rounded << std::fixed << std::setprecision(3) << angle_disto;
-    fillLogInfo("PolycubeMeasures", "Stretch", logs_path, stretch_rounded.str());
-    fillLogInfo("PolycubeMeasures", "AreaDistortion", logs_path, area_disto_rounded.str());
-    fillLogInfo("PolycubeMeasures", "AngleDistortion", logs_path, angle_disto_rounded.str());
+    fillLogInfo(JSON_tag, "Stretch", logs_path, stretch_rounded.str());
+    fillLogInfo(JSON_tag, "AreaDistortion", logs_path, area_disto_rounded.str());
+    fillLogInfo(JSON_tag, "AngleDistortion", logs_path, angle_disto_rounded.str());
     std::cout << logs_path << " updated" << std::endl;
 }
