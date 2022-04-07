@@ -90,15 +90,36 @@ int LatexDoc::add_mesh(std::filesystem::path path_to_mesh_folder, std::string po
     // for (auto& el : j["/LabelingFinal"_json_pointer].items() ) {
     //     std::cout << el.key() << " " << el.value() << std::endl;
     // }
-    std::vector<std::pair<std::string,std::string>> table_values;
-    table_values.push_back(std::make_pair("#corners",           j.value<std::string>("/LabelingFinal/#corners"_json_pointer,           "")));
-    table_values.push_back(std::make_pair("#tps",               j.value<std::string>("/LabelingFinal/#tps"_json_pointer,               "")));
-    table_values.push_back(std::make_pair("InvalidTotal",       j.value<std::string>("/LabelingFinal/InvalidTotal"_json_pointer,       "")));
-    table_values.push_back(std::make_pair("fidelity",           j.value<std::string>("/LabelingFinal/fidelity"_json_pointer,           "")));
-    table_values.push_back(std::make_pair("angle/area dist.",   j.value<std::string>(nlohmann::json::json_pointer(polycube_tagname+"/AngleDistortion"), "") + "/" +
+    std::vector<std::pair<std::string,std::string>> table1, table2, table3;
+    table1.push_back(std::make_pair("#charts",            j.value<std::string>("/LabelingFinal/#charts"_json_pointer,         "")));
+    table1.push_back(std::make_pair("#corners",           j.value<std::string>("/LabelingFinal/#corners"_json_pointer,        "")));
+    table1.push_back(std::make_pair("#tps",               j.value<std::string>("/LabelingFinal/#tps"_json_pointer,            "")));
+    table1.push_back(std::make_pair("fidelity",           j.value<std::string>("/LabelingFinal/fidelity"_json_pointer,        "")));
+    table1.push_back(std::make_pair("score",              j.value<std::string>("/LabelingFinal/ScoreFinal"_json_pointer,      "")));
+    table1.push_back(std::make_pair("angle/area dist.",   j.value<std::string>(nlohmann::json::json_pointer(polycube_tagname+"/AngleDistortion"), "") + "/" +
                                                                 j.value<std::string>(nlohmann::json::json_pointer(polycube_tagname+"/AreaDistortion"),  "")));
-    table_values.push_back(std::make_pair("stretch",            j.value<std::string>(nlohmann::json::json_pointer(polycube_tagname+"/Stretch"),         "")));
-    add_table(table_values);
+    table1.push_back(std::make_pair("stretch",            j.value<std::string>(nlohmann::json::json_pointer(polycube_tagname+"/Stretch"),         "")));
+    add_table(table1);
+
+    ofs << "\\par" << std::endl;
+    ofs << "\\vspace{10pt}%" << std::endl;
+
+    table2.push_back(std::make_pair("GraphCutCompactness",j.value<std::string>("/GraphCutParams/CompactCoeff"_json_pointer,   "")));
+    table2.push_back(std::make_pair("GraphCutFidelity",   j.value<std::string>("/GraphCutParams/FidelityCoeff"_json_pointer,  "")));
+    table2.push_back(std::make_pair("GraphCutInvalidies", j.value<std::string>("/LabelingGraphCut/InvalidTotal"_json_pointer, "")));
+    table2.push_back(std::make_pair("GraphCutScore",      j.value<std::string>("/LabelingGraphCut/ScoreFinal"_json_pointer,   "")));
+    add_table(table2);
+
+    ofs << "\\par" << std::endl;
+    ofs << "\\vspace{10pt}%" << std::endl;
+
+    double total_time = 0.0;
+    total_time += std::stod(j.value<std::string>("/Timing/PreGenetics"_json_pointer,   "NAN"));
+    total_time += std::stod(j.value<std::string>("/Timing/Genetics"_json_pointer,      "NAN"));
+    total_time += std::stod(j.value<std::string>("/Timing/PostGenetics"_json_pointer,  "NAN"));
+    table3.push_back(std::make_pair("TotalTime (s)",      std::to_string(total_time)));
+    table3.push_back(std::make_pair("#generations",       j.value<std::string>("/#generations"_json_pointer,"")));
+    add_table(table3);
 
     figures_are_missing |= add_pictures(path_to_mesh_folder,1,section_name + ", input");
 
