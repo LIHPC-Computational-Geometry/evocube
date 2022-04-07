@@ -5,12 +5,14 @@
 #include <igl/readSTL.h>
 #include <igl/writeSTL.h>
 #include <igl/upsample.h>
+#include <set>
 
 #include "mesh_io.h"
 #include "tet_boundary.h"
 #include "logging.h"
 
-#define PREPROCESS_APP "../../preprocess_polycube/build/preprocess"
+#define PREPROCESS_APP ""
+//"../../preprocess_polycube/build/preprocess"
 
 int main(){
     enum INPUT_TYPE {TRI_OBJ, TRI_STL, CAD_STEP, TET_MESH};
@@ -95,14 +97,18 @@ int main(){
     std::string output_hex = "/hexes.mesh";
     std::string logs_file = "/logs.json";
 
+    std::set<std::filesystem::path> entries; // set orders entries
+    for (auto &entry : std::filesystem::directory_iterator(input_path)){
+        entries.insert(entry.path());
+    }
 
-    for (const auto & entry : std::filesystem::directory_iterator(input_path)){
+    for (const auto & entry : entries){
         if (skip_first){
             skip_first = false;
             continue;
         }
         std::cout << "Dealing with: " << entry << std::endl;
-        std::string base_filename = std::string(entry.path()).substr(std::string(entry.path()).find_last_of("/\\") + 1);
+        std::string base_filename = std::string(entry).substr(std::string(entry).find_last_of("/\\") + 1);
         std::string::size_type const p(base_filename.find_first_of('.'));
         std::string file_without_extension = base_filename.substr(0, p);
         std::string extension = base_filename.substr(base_filename.find_last_of('.')+1, base_filename.size());
@@ -124,20 +130,19 @@ int main(){
             }
             std::filesystem::create_directory(new_folder);
 
-
             Eigen::MatrixXd TV(0,0);
             Eigen::MatrixXi TT(0,0);
 
             switch (input_type){
             case TRI_OBJ: {
                 std::string input_obj = new_folder + obj_input;
-                std::filesystem::copy(entry.path(), input_obj);
+                std::filesystem::copy(entry, input_obj);
                 triObjtoMeshTet(input_obj, output_mesh, TV, TT);
                 break;
             }
             case TRI_STL:{ // This one is not recommended 
                 std::string input_stl = new_folder + stl_input;
-                std::filesystem::copy(entry.path(), input_stl);
+                std::filesystem::copy(entry, input_stl);
 
                 bool refine_mesh = true;
                 if (refine_mesh){
@@ -172,7 +177,7 @@ int main(){
             }
             case CAD_STEP:{
                 std::string input_step = new_folder + step_input;
-                std::filesystem::copy(entry.path(), input_step);
+                std::filesystem::copy(entry, input_step);
                 std::string command = "/usr/bin/python3 ../scripts/step_to_tet.py " + input_step + " " + output_mesh;
                 int result = system(command.c_str());
                 if (result) {
@@ -183,16 +188,16 @@ int main(){
                 break;
             }
             case TET_MESH:{
-                std::filesystem::copy(entry.path(), output_mesh);
+                std::filesystem::copy(entry, output_mesh);
 
-                std::string file_without_mesh = std::string(entry.path()) // name with potentially several "."
-                                            .substr(std::string(entry.path()).find_last_of("/\\") + 1,
-                                                    std::string(entry.path()).find_last_of('.') + 1);
+                std::string file_without_mesh = std::string(entry) // name with potentially several "."
+                                            .substr(std::string(entry).find_last_of("/\\") + 1,
+                                                    std::string(entry).find_last_of('.') + 1);
                 file_without_mesh = file_without_mesh.substr(0, file_without_mesh.size() - 5);
                 std::cout << "gotcha: " << file_without_mesh << std::endl;
                 
-                std::string png_screenshot = std::string(entry.path())
-                                            .substr(0, std::string(entry.path()).find_last_of("/\\") + 1)
+                std::string png_screenshot = std::string(entry)
+                                            .substr(0, std::string(entry).find_last_of("/\\") + 1)
                                             + "../octreemeshes_cad_screenshots/" 
                                             + file_without_mesh
                                             + ".png";
