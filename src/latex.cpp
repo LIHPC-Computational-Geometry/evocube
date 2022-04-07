@@ -44,55 +44,63 @@ void LatexDoc::add_subpage(std::filesystem::path path_to_subpage) {
     ofs << "%" << std::endl;
 }
 
-bool LatexDoc::add_mesh(std::filesystem::path path_to_mesh_folder, std::string polycube_tagname) {
+int LatexDoc::add_mesh(std::filesystem::path path_to_mesh_folder, std::string polycube_tagname) {
 
-    bool incomplete_page = false;
-    std::string mesh_name = path_to_mesh_folder.filename(), label = "";
+    bool figures_are_missing = false;
+    std::string mesh_name = path_to_mesh_folder.filename(), section_name = "", label = "";
 
-    //replace '_' by "\\_" for mesh_name
+    std::ifstream logs_path = path_to_mesh_folder / "logs.json";
+    if(!logs_path.good())
+        return 3;
+    nlohmann::json j;
+    logs_path >> j;
+
+    //replace '_' by "\\_" for section_name
     //remove '_' for label
     size_t pos = 0;
     while(pos < mesh_name.length()) {
         if(mesh_name[pos] == '_') {
-            mesh_name.replace(pos, 1, "\\_");
+            section_name += "\\_";
             pos += 2;
         }
         else {
+            section_name += mesh_name[pos];
             label += mesh_name[pos];
             pos++;
         }
     }
     
-    ofs << "\\section{" << mesh_name << "}%" << std::endl;
+    ofs << "\\section{" << section_name << "}%" << std::endl;
     ofs << "\\label{sec:" << label << "}%" << std::endl;
     ofs << "{%" << std::endl;
     ofs << "\\centering%" << std::endl;
 
-    //write the logs in a table
-
-    std::ifstream logs_path = path_to_mesh_folder / "logs.json";
-    if(logs_path.good()) {
-        nlohmann::json j;
-        logs_path >> j;
-        //to get all the items in LabelingFinal
-        // for (auto& el : j["/LabelingFinal"_json_pointer].items() ) {
-        //     std::cout << el.key() << " " << el.value() << std::endl;
-        // }
-
-        //write only some items
-        //put an empty string if the key doesn't exist
-        std::vector<std::pair<std::string,std::string>> table_values;
-        table_values.push_back(std::make_pair("#corners",           j.value<std::string>("/LabelingFinal/#corners"_json_pointer,           "")));
-        table_values.push_back(std::make_pair("#tps",               j.value<std::string>("/LabelingFinal/#tps"_json_pointer,               "")));
-        table_values.push_back(std::make_pair("InvalidTotal",       j.value<std::string>("/LabelingFinal/InvalidTotal"_json_pointer,       "")));
-        table_values.push_back(std::make_pair("fidelity",           j.value<std::string>("/LabelingFinal/fidelity"_json_pointer,           "")));
-        table_values.push_back(std::make_pair("angle/area dist.",   j.value<std::string>(nlohmann::json::json_pointer(polycube_tagname+"/AngleDistortion"), "") + "/" +
-                                                                    j.value<std::string>(nlohmann::json::json_pointer(polycube_tagname+"/AreaDistortion"),  "")));
-        table_values.push_back(std::make_pair("stretch",            j.value<std::string>(nlohmann::json::json_pointer(polycube_tagname+"/Stretch"),         "")));
-        add_table(table_values);
+    if(j.value<std::string>("/LabelingFinal/InvalidTotal"_json_pointer,"")!="0") {
+        ofs << "Failed to find a valid labeling" << std::endl;
+        ofs << "}%" << std::endl;
+        ofs << "\\clearpage%" << std::endl;
+        ofs << "%" << std::endl;
+        ofs << "%" << std::endl;
+        ofs << "%" << std::endl;
+        return 2;
     }
+    
+    //write the logs in a table. put an empty string if the key doesn't exist.
+    //to get all the items in LabelingFinal
+    // for (auto& el : j["/LabelingFinal"_json_pointer].items() ) {
+    //     std::cout << el.key() << " " << el.value() << std::endl;
+    // }
+    std::vector<std::pair<std::string,std::string>> table_values;
+    table_values.push_back(std::make_pair("#corners",           j.value<std::string>("/LabelingFinal/#corners"_json_pointer,           "")));
+    table_values.push_back(std::make_pair("#tps",               j.value<std::string>("/LabelingFinal/#tps"_json_pointer,               "")));
+    table_values.push_back(std::make_pair("InvalidTotal",       j.value<std::string>("/LabelingFinal/InvalidTotal"_json_pointer,       "")));
+    table_values.push_back(std::make_pair("fidelity",           j.value<std::string>("/LabelingFinal/fidelity"_json_pointer,           "")));
+    table_values.push_back(std::make_pair("angle/area dist.",   j.value<std::string>(nlohmann::json::json_pointer(polycube_tagname+"/AngleDistortion"), "") + "/" +
+                                                                j.value<std::string>(nlohmann::json::json_pointer(polycube_tagname+"/AreaDistortion"),  "")));
+    table_values.push_back(std::make_pair("stretch",            j.value<std::string>(nlohmann::json::json_pointer(polycube_tagname+"/Stretch"),         "")));
+    add_table(table_values);
 
-    incomplete_page |= add_pictures(path_to_mesh_folder,1,mesh_name + ", input");
+    figures_are_missing |= add_pictures(path_to_mesh_folder,1,section_name + ", input");
 
     ofs << "\\par%" << std::endl;
     ofs << "}%" << std::endl;
@@ -100,7 +108,7 @@ bool LatexDoc::add_mesh(std::filesystem::path path_to_mesh_folder, std::string p
     ofs << "{%" << std::endl;
     ofs << "\\centering%" << std::endl;
 
-    incomplete_page |= add_pictures(path_to_mesh_folder,4,mesh_name + ", labelling");
+    figures_are_missing |= add_pictures(path_to_mesh_folder,4,section_name + ", labelling");
 
     ofs << "\\par%" << std::endl;
     ofs << "}%" << std::endl;
@@ -108,7 +116,7 @@ bool LatexDoc::add_mesh(std::filesystem::path path_to_mesh_folder, std::string p
     ofs << "{%" << std::endl;
     ofs << "\\centering%" << std::endl;
 
-    incomplete_page |= add_pictures(path_to_mesh_folder,0,mesh_name + ", polycube");
+    figures_are_missing |= add_pictures(path_to_mesh_folder,0,section_name + ", polycube");
 
     ofs << "\\par%" << std::endl;
     ofs << "}%" << std::endl;
@@ -117,9 +125,7 @@ bool LatexDoc::add_mesh(std::filesystem::path path_to_mesh_folder, std::string p
     ofs << "%" << std::endl;
     ofs << "%" << std::endl;
 
-    if(incomplete_page)
-        coloredPrint(std::string("Some/all figures of ") + mesh_name + " are missing","red");
-    return incomplete_page;
+    return figures_are_missing;// 0 = good, 1 = some figs missing
 }
 
 bool LatexDoc::add_pictures(std::filesystem::path path_to_mesh_folder, int figure_id, std::string caption) {

@@ -27,9 +27,12 @@ public:
      * @param path_to_mesh_folder   Path to the mesh folder containing the pictures
      * @param polycube_tagname      Name of the JSON tag in which the distortion measures will be read. Must start with '/'.
      *                              For now, should be "/FastPolycubeFloat" or "/FastPolycubeInt"
-     * @return False if the page is complete, True if at least 1 figure is missing
+     * @return  0 if good                                   -> mesh added
+     *          1 if some pictures are missing              -> mesh added anyway
+     *          2 if labeling invalid (given the log file)  -> create a page saying no valid labeling was found
+     *          3 if the log file is not found              -> mesh skipped
      */
-    bool add_mesh(std::filesystem::path path_to_mesh_folder, std::string polycube_tagname = "/FastPolycubeFloat");
+    int add_mesh(std::filesystem::path path_to_mesh_folder, std::string polycube_tagname = "/FastPolycubeFloat");
 
 private:
     std::ofstream ofs;
