@@ -3,9 +3,10 @@
 #include <fstream>
 #include <string>
 #include <algorithm> //std::replace
-#include <utility> //std::pair
 #include <vector>
 #include <nlohmann/json.hpp>
+#include <iomanip>
+#include <sstream>
 
 #include "latex.h"
 #include "logging.h"
@@ -87,60 +88,94 @@ int LatexDoc::add_mesh(std::filesystem::path path_to_mesh_folder, std::string po
         ofs << "%" << std::endl;
         return 2;
     }
-    
-    //write the logs in a table. put an empty string if the key doesn't exist.
-    //to get all the items in LabelingFinal
-    // for (auto& el : j["/LabelingFinal"_json_pointer].items() ) {
-    //     std::cout << el.key() << " " << el.value() << std::endl;
-    // }
-    std::vector<std::pair<std::string,std::string>> table1, table2, table3;
-    table1.push_back(std::make_pair("#charts",            j.value<std::string>("/LabelingFinal/#charts"_json_pointer,         "")));
-    table1.push_back(std::make_pair("#corners",           j.value<std::string>("/LabelingFinal/#corners"_json_pointer,        "")));
-    table1.push_back(std::make_pair("#tps",               j.value<std::string>("/LabelingFinal/#tps"_json_pointer,            "")));
-    table1.push_back(std::make_pair("fidelity",           j.value<std::string>("/LabelingFinal/fidelity"_json_pointer,        "")));
-    table1.push_back(std::make_pair("score",              j.value<std::string>("/LabelingFinal/ScoreFinal"_json_pointer,      "")));
-    table1.push_back(std::make_pair("angle/area dist.",   j.value<std::string>(nlohmann::json::json_pointer(polycube_tagname+"/AngleDistortion"), "") + "/" +
-                                                                j.value<std::string>(nlohmann::json::json_pointer(polycube_tagname+"/AreaDistortion"),  "")));
-    table1.push_back(std::make_pair("stretch",            j.value<std::string>(nlohmann::json::json_pointer(polycube_tagname+"/Stretch"),         "")));
-    add_table(table1);
+
+    // TABLE ABOUT THE INPUT MESH
+
+    std::vector<std::vector<std::string>> table;
+    table.push_back({"#vertices","#faces","avg. edge length"});
+    table.push_back({
+        j.value<std::string>("/InputTris/vertices"_json_pointer,""),
+        j.value<std::string>("/InputTris/faces"_json_pointer,""),
+        j.value<std::string>("/InputTris/AvgEdgeLength"_json_pointer,"")
+    });
+    add_table(table);
+
+    // INPUT MESH FIGURE
 
     ofs << "\\par" << std::endl;
-    ofs << "\\vspace{10pt}%" << std::endl;
-
-    table2.push_back(std::make_pair("GraphCutCompactness",j.value<std::string>("/GraphCutParams/CompactCoeff"_json_pointer,   "")));
-    table2.push_back(std::make_pair("GraphCutFidelity",   j.value<std::string>("/GraphCutParams/FidelityCoeff"_json_pointer,  "")));
-    table2.push_back(std::make_pair("GraphCutInvalidies", j.value<std::string>("/LabelingGraphCut/InvalidTotal"_json_pointer, "")));
-    table2.push_back(std::make_pair("GraphCutScore",      j.value<std::string>("/LabelingGraphCut/ScoreFinal"_json_pointer,   "")));
-    add_table(table2);
-
-    ofs << "\\par" << std::endl;
-    ofs << "\\vspace{10pt}%" << std::endl;
-
-    double total_time = 0.0;
-    total_time += std::stod(j.value<std::string>("/Timing/PreGenetics"_json_pointer,   "NAN"));
-    total_time += std::stod(j.value<std::string>("/Timing/Genetics"_json_pointer,      "NAN"));
-    total_time += std::stod(j.value<std::string>("/Timing/PostGenetics"_json_pointer,  "NAN"));
-    table3.push_back(std::make_pair("TotalTime (s)",      std::to_string(total_time)));
-    table3.push_back(std::make_pair("#generations",       j.value<std::string>("/#generations"_json_pointer,"")));
-    table3.push_back(std::make_pair("LabelingSimilarity",       j.value<std::string>("/LabelingSimilarity"_json_pointer,"")));
-    add_table(table3);
-
+    ofs << "\\vspace{-20pt}%" << std::endl;
     figures_are_missing |= add_pictures(path_to_mesh_folder,1,section_name + ", input");
 
-    ofs << "\\par%" << std::endl;
-    ofs << "}%" << std::endl;
-    ofs << "\\vspace{-20pt}%" << std::endl;
-    ofs << "{%" << std::endl;
-    ofs << "\\centering%" << std::endl;
+    // TABLES ABOUT THE LABELING
 
+    ofs << "\\par%" << std::endl;
+    ofs << "\\vspace{15pt}%" << std::endl;
+    double graphcut_score, final_score;
+    graphcut_score = std::stod(j.value<std::string>("/LabelingGraphCut/ScoreFinal"_json_pointer,"NAN"));
+    final_score = std::stod(j.value<std::string>("/LabelingFinal/ScoreFinal"_json_pointer,"NAN"));
+    table.clear();
+    table.push_back({"","#charts","#corners","#TP","#invalidities","fidelity","score"});
+    table.push_back({
+        "Initial",
+        j.value<std::string>("/LabelingGraphCut/#charts"_json_pointer,""),
+        j.value<std::string>("/LabelingGraphCut/#corners"_json_pointer,""),
+        j.value<std::string>("/LabelingGraphCut/#tps"_json_pointer,""),
+        j.value<std::string>("/LabelingGraphCut/InvalidTotal"_json_pointer,""),
+        j.value<std::string>("/LabelingGraphCut/fidelity"_json_pointer,""),
+        double2string(graphcut_score,3)
+    });
+    table.push_back({
+        "Final",
+        j.value<std::string>("/LabelingFinal/#charts"_json_pointer,""),
+        j.value<std::string>("/LabelingFinal/#corners"_json_pointer,""),
+        j.value<std::string>("/LabelingFinal/#tps"_json_pointer,""),
+        j.value<std::string>("/LabelingFinal/InvalidTotal"_json_pointer,""),
+        j.value<std::string>("/LabelingFinal/fidelity"_json_pointer,""),
+        double2string(final_score,3)
+    });
+    add_table(table);
+
+    ofs << "\\par" << std::endl;
+    ofs << "\\vspace{5pt}%" << std::endl;
+    double graphcut_coeff = std::stod(j.value<std::string>("/GraphCutParams/FidelityCoeff"_json_pointer,"NAN")) / 
+                            std::stod(j.value<std::string>("/GraphCutParams/CompactCoeff"_json_pointer,"NAN"));
+    double total_time = 0.0;
+    total_time += std::stod(j.value<std::string>("/Timing/PreGenetics"_json_pointer,"NAN"));
+    total_time += std::stod(j.value<std::string>("/Timing/Genetics"_json_pointer,"NAN"));
+    total_time += std::stod(j.value<std::string>("/Timing/PostGenetics"_json_pointer,"NAN"));
+    table.clear();
+    table.push_back({"GraphCut fidelity/compactness","#generations","duration (s)","LabelingSimilarity"});
+    table.push_back({
+        double2string(graphcut_coeff,3),
+        j.value<std::string>("/#generations"_json_pointer,""),
+        std::to_string(total_time),
+        j.value<std::string>("/LabelingSimilarity"_json_pointer,"")
+    });
+    add_table(table);
+
+    // LABELLING FIGURE
+
+    ofs << "\\par" << std::endl;
+    ofs << "\\vspace{-20pt}%" << std::endl;
     figures_are_missing |= add_pictures(path_to_mesh_folder,4,section_name + ", labelling");
 
-    ofs << "\\par%" << std::endl;
-    ofs << "}%" << std::endl;
-    ofs << "\\vspace{-20pt}%" << std::endl;
-    ofs << "{%" << std::endl;
-    ofs << "\\centering%" << std::endl;
+    // TABLE ABOUT THE POLYCUBE
 
+    ofs << "\\par%" << std::endl;
+    ofs << "\\vspace{15pt}%" << std::endl;
+    table.clear();
+    table.push_back({"angle/area dist.","stretch"});
+    table.push_back({
+        j.value<std::string>(nlohmann::json::json_pointer(polycube_tagname+"/AngleDistortion"),"") + "/" +
+        j.value<std::string>(nlohmann::json::json_pointer(polycube_tagname+"/AreaDistortion"),""),
+        j.value<std::string>(nlohmann::json::json_pointer(polycube_tagname+"/Stretch"),"")
+    });
+    add_table(table);
+
+    // POLYCUBE FIGURE
+
+    ofs << "\\par" << std::endl;
+    ofs << "\\vspace{-20pt}%" << std::endl;
     figures_are_missing |= add_pictures(path_to_mesh_folder,0,section_name + ", polycube");
 
     ofs << "\\par%" << std::endl;
@@ -183,6 +218,7 @@ bool LatexDoc::add_pictures(std::filesystem::path path_to_mesh_folder, int figur
         ofs << "\\includegraphics[width=\\linewidth]{" + fig3 + "}%" << std::endl;
         ofs << "\\end{subfigure}%" << std::endl;
 
+        ofs << "\\vspace{-20pt}%" << std::endl;
         ofs << "\\caption{" << caption << "}%" << std::endl;
         ofs << "\\end{figure}%" << std::endl;
         return false;
@@ -191,49 +227,46 @@ bool LatexDoc::add_pictures(std::filesystem::path path_to_mesh_folder, int figur
         return true;
 }
 
-void LatexDoc::add_table(const std::vector<std::pair<std::string,std::string>>& values) {
+void LatexDoc::add_table(const std::vector<std::vector<std::string>>& values) {
 
     if(values.empty())
         return;
 
-    //declare a tabular environment with values.size() centered columns
+    //declare a tabular environment with values[0].size() centered columns
     ofs << "\\begin{tabular}{|";
-    for(int index = 0; index < values.size(); index++) { ofs << "c|"; }
+    for(int col = 0; col < values[0].size(); col++) { ofs << "c|"; }
     ofs << "}%" << std::endl;
     ofs << "\\hline%" << std::endl;
 
-    //write column names
-    for(int index = 0; index < values.size(); index++) {
-
-        std::string column_name = values[index].first;
-        //replace '#' with '\\#'
-        int pos=0;
-        while(pos < column_name.length()) {
-            if(column_name[pos] == '#') {
-                column_name.replace(pos, 1, "\\#");
-                pos += 2;
-            }
+    //write values
+    for(int row = 0; row < values.size(); row++) {
+        for(int col = 0; col < values[0].size(); col++) {
+            ofs << escape_number_sign(values[row].at(col));
+            if(col != values[0].size()-1)
+                ofs << " & ";
             else
-                pos++;
+                ofs << " \\\\%" << std::endl;
         }
-
-        ofs << column_name;
-        if(index != values.size()-1)
-            ofs << " & ";
-        else
-            ofs << " \\\\%" << std::endl;
+        ofs << "\\hline%" << std::endl;
     }
-    ofs << "\\hline%" << std::endl;
-
-    //write column values
-    for(int index = 0; index < values.size(); index++) {
-        ofs << values[index].second;
-        if(index != values.size()-1)
-            ofs << " & ";
-        else
-            ofs << " \\\\%" << std::endl;
-    }
-    ofs << "\\hline%" << std::endl;
     ofs << "\\end{tabular}%" << std::endl;
+}
 
+std::string escape_number_sign(std::string input) {
+    std::string output;
+    int pos=0;
+    while(pos < input.length()) {
+        if(input[pos] == '#')
+            output += "\\#";
+        else
+            output += input[pos];
+        pos++;
+    }
+    return output;
+}
+
+std::string double2string(double value, int precision) {
+    std::stringstream rounded;
+    rounded << std::fixed << std::setprecision(precision) << value;
+    return rounded.str();
 }
