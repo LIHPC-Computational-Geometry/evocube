@@ -79,16 +79,6 @@ int LatexDoc::add_mesh(std::filesystem::path path_to_mesh_folder, std::string po
     ofs << "{%" << std::endl;
     ofs << "\\centering%" << std::endl;
 
-    if(j.value<std::string>("/LabelingFinal/InvalidTotal"_json_pointer,"")!="0") {
-        ofs << "Failed to find a valid labeling" << std::endl;
-        ofs << "}%" << std::endl;
-        ofs << "\\clearpage%" << std::endl;
-        ofs << "%" << std::endl;
-        ofs << "%" << std::endl;
-        ofs << "%" << std::endl;
-        return 2;
-    }
-
     // TABLE ABOUT THE INPUT MESH
 
     std::vector<std::vector<std::string>> table;
@@ -107,6 +97,21 @@ int LatexDoc::add_mesh(std::filesystem::path path_to_mesh_folder, std::string po
     figures_are_missing |= add_pictures(path_to_mesh_folder,1,section_name + ", input");
 
     // TABLES ABOUT THE LABELING
+
+    if(j.value<std::string>("/LabelingFinal/InvalidTotal"_json_pointer,"")!="0") {
+        ofs << "\\par" << std::endl;
+        ofs << "\\textit{Failed to find a valid labeling}" << std::endl;
+        //show the invalid labeling anyway, but not the polycube
+        ofs << "\\par" << std::endl;
+        ofs << "\\vspace{-20pt}%" << std::endl;
+        figures_are_missing |= add_pictures(path_to_mesh_folder,4,section_name + ", labelling");
+        ofs << "}%" << std::endl;
+        ofs << "\\clearpage%" << std::endl;
+        ofs << "%" << std::endl;
+        ofs << "%" << std::endl;
+        ofs << "%" << std::endl;
+        return 2;
+    }
 
     ofs << "\\par%" << std::endl;
     ofs << "\\vspace{15pt}%" << std::endl;
