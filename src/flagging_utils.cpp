@@ -161,3 +161,16 @@ Eigen::VectorXi normalFlagging(const Eigen::MatrixXd& V, const Eigen::MatrixXi& 
     }
     return flagging;
 }
+
+double flaggingSimilarity(const Eigen::VectorXi& labeling1, const Eigen::VectorXi& labeling2) {
+    if(labeling1.rows()!=labeling2.rows()) {
+        return -1.0;
+    }
+    int same_label_counter = 0;
+    for(int face_number = 0; face_number < labeling1.rows(); face_number++) {
+        if(labeling1(face_number) == labeling2(face_number)) {
+            same_label_counter++;
+        }
+    }
+    return ((double) same_label_counter) / labeling1.rows();
+}

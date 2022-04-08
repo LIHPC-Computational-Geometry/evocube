@@ -119,6 +119,7 @@ int LatexDoc::add_mesh(std::filesystem::path path_to_mesh_folder, std::string po
     total_time += std::stod(j.value<std::string>("/Timing/PostGenetics"_json_pointer,  "NAN"));
     table3.push_back(std::make_pair("TotalTime (s)",      std::to_string(total_time)));
     table3.push_back(std::make_pair("#generations",       j.value<std::string>("/#generations"_json_pointer,"")));
+    table3.push_back(std::make_pair("LabelingSimilarity",       j.value<std::string>("/LabelingSimilarity"_json_pointer,"")));
     add_table(table3);
 
     figures_are_missing |= add_pictures(path_to_mesh_folder,1,section_name + ", input");

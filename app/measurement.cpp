@@ -13,6 +13,7 @@
 #include "distortion.h"
 #include "mesh_io.h"
 #include "logging.h"
+#include "flagging_utils.h"
 #include "tet_boundary.h"
 
 void tetToBnd(const Eigen::MatrixXd& V_tets, const Eigen::MatrixXi& tets, 
@@ -31,6 +32,10 @@ const std::map<std::string,std::string> polycube_filename_to_JSON_tag {
 
 #define DEFAULT_TRI_INPUT   "../data/DATASET2/OM_smooth/bunny_input_tri/boundary.obj"
 #define DEFAULT_POLYCUBE    "../data/DATASET2/OM_smooth/bunny_input_tri/fast_polycube_surf.obj"
+#define LABELING_GRAPHCUT_FILENAME  "/labeling_init.txt" //expected to be in the same folder as polycube_filepath
+#define LABELING_FINAL_FILENAME     "/labeling.txt"      //expected to be in the same folder as polycube_filepath
+
+
 
 int main(int argc, char *argv[]){
 
@@ -152,5 +157,28 @@ int main(int argc, char *argv[]){
     fillLogInfo(JSON_tag, "Stretch", logs_path, stretch_rounded.str());
     fillLogInfo(JSON_tag, "AreaDistortion", logs_path, area_disto_rounded.str());
     fillLogInfo(JSON_tag, "AngleDistortion", logs_path, angle_disto_rounded.str());
+
+    //compute the similarity between the graphcut and the final labeling
+    std::string labeling_graphcut_filepath  = save_path + LABELING_GRAPHCUT_FILENAME,
+                labeling_final_filepath     = save_path + LABELING_FINAL_FILENAME;
+    Eigen::VectorXi labeling_graphcut   = openFlagging(labeling_graphcut_filepath,F.rows()),
+                    labeling_final      = openFlagging(labeling_final_filepath,F.rows());
+    if(labeling_graphcut.isZero() || labeling_final.isZero()) {
+        //case one of the labeling file don't have the expected size
+        coloredPrint("Error : invalid number of labels in one of the labeling files","red");
+    }
+    else {
+        double similarity = flaggingSimilarity(labeling_graphcut,labeling_final);
+        if(similarity >= 0.0) {
+            std::cout << "LabelingSimilarity:\t" << similarity << std::endl;
+            std::stringstream similarity_rounded;
+            similarity_rounded << std::fixed << std::setprecision(3) << similarity;
+            fillLogInfo("LabelingSimilarity", logs_path, similarity_rounded.str());
+        }
+        else {
+            coloredPrint("Error : flaggingSimilarity() says invalid vector lengths","red");
+        }
+    }
+
     std::cout << logs_path << " updated" << std::endl;
 }
