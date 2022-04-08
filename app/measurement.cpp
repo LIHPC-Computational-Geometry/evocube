@@ -64,10 +64,6 @@ int main(int argc, char *argv[]){
     Eigen::MatrixXi F, F1, F2;
     Eigen::MatrixXd Vb, V1, V2, V_tets1, V_tets2; // V1 reference triangle mesh, V2 deformed
 
-    igl::readOBJ(base_name + "/boundary.obj", Vb, F);
-    V1 = Vb;
-    igl::readOBJ(base_name + "/fast_polycube_surf.obj", V2, F2);
-
     // For tet meshes comparison:
     Eigen::MatrixXi tets1, tets2;
     /*
@@ -79,9 +75,9 @@ int main(int argc, char *argv[]){
     //*/
 
     igl::readOBJ(input_filepath, V1, F);
-    igl::readOBJ(polycube_filepath, V2, F);
+    igl::readOBJ(polycube_filepath, V2, F2);
     
-    ///*
+    //*
     // Checking input validity
     if (V1.rows() != V2.rows()) coloredPrint("ERROR: vertex sizes don't match", "red");
     if (F.rows() != F2.rows()) coloredPrint("ERROR: face sizes don't match", "red");
@@ -106,7 +102,7 @@ int main(int argc, char *argv[]){
     double A_m = A1.sum();
     double A_d = A2.sum();
 
-    V2 = V2 * std::sqrt(A_m / A_d);
+    V2 = V2 * std::sqrt(A_m / A_d); // TODO do this before saving the polycube instead?
 
     igl::doublearea(V1, F, A1);
     igl::doublearea(V2, F, A2);
