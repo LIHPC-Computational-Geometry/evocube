@@ -55,6 +55,9 @@ int LatexDoc::add_mesh(std::filesystem::path path_to_mesh_folder, std::string po
     nlohmann::json j;
     logs_path >> j;
 
+    if (j.empty()) 
+        return 3;
+
     //replace '_' by "\\_" for section_name
     //remove '_' for label
     size_t pos = 0;

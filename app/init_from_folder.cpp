@@ -35,7 +35,8 @@ int main(){
     bool break_after_first = false;
     bool skip_first = false;
     bool skip_if_folder_exists = false;
-    bool skip_already_valid = true;
+    bool skip_already_valid = false;
+    bool skip_logs_exist = false;
 
     //input_path = "../data/DATASET/OM_cad_meshes/";
     // "../data/2019-OctreeMeshing/input/smooth/"
@@ -127,6 +128,11 @@ int main(){
             continue;
         }
 
+        if (skip_logs_exist && readLogsValue("LabelingFinal", "InvalidTotal", logs_path) != "null"){
+            std::cout << "Logs already exist, skipping " << new_folder << std::endl;
+            continue;
+        }
+
         if (skip_already_valid && readLogsValue("LabelingFinal", "InvalidTotal", logs_path) == "0"){
             std::cout << "Labeling already valid, skipping " << new_folder << std::endl;
             continue;
@@ -203,7 +209,6 @@ int main(){
                                             .substr(std::string(entry).find_last_of("/\\") + 1,
                                                     std::string(entry).find_last_of('.') + 1);
                 file_without_mesh = file_without_mesh.substr(0, file_without_mesh.size() - 5);
-                std::cout << "gotcha: " << file_without_mesh << std::endl;
                 
                 std::string png_screenshot = std::string(entry)
                                             .substr(0, std::string(entry).find_last_of("/\\") + 1)
@@ -236,22 +241,9 @@ int main(){
         // ---- COMPUTE LABELING ---- //
         if (!labeling_already_computed){
             resetLogFile(logs_path);
-
             std::string command_labeling = "./evolabel " + boundary_obj_path + " " + new_folder;
             int result_labeling = system(command_labeling.c_str());
             if (result_labeling == 2) return 2;
-
-            //compute polycube distortion. 2 inputs : boundary.obj and polycube surface. Will update the JSON in the same folder as the polycube
-
-            std::cout << "Measures for the fast float polycube surf" << std::endl;
-            std::string command_measurement_1 = "./measurement " + boundary_obj_path + " " + new_folder + polycube_bnd_float;
-            int result_measurement_1 = system(command_measurement_1.c_str());
-            if (result_measurement_1 == 2) return 2;
-
-            std::cout << "Measures for the fast int polycube surf" << std::endl;
-            std::string command_measurement_2 = "./measurement " + boundary_obj_path + " " + new_folder + polycube_bnd_int;
-            int result_measurement_2 = system(command_measurement_2.c_str());
-            if (result_measurement_2 == 2) return 2;
         }
 
         // ---- COMPUTE HEX MESH (SIMPLE METHOD) ---- //
@@ -261,6 +253,18 @@ int main(){
             int result_hexex = system(command_hexex.c_str());
             if (result_hexex == 2) return 2;
         }
+
+        // ---- POST-PROCESSING MEASUREMENTS ---- //
+        //compute polycube distortion. 2 inputs : boundary.obj and polycube surface. Will update the JSON in the same folder as the polycube
+        std::cout << "Measures for the fast float polycube surf" << std::endl;
+        std::string command_measurement_1 = "./measurement " + boundary_obj_path + " " + new_folder + polycube_bnd_float;
+        int result_measurement_1 = system(command_measurement_1.c_str());
+        if (result_measurement_1 == 2) return 2;
+
+        std::cout << "Measures for the fast int polycube surf" << std::endl;
+        std::string command_measurement_2 = "./measurement " + boundary_obj_path + " " + new_folder + polycube_bnd_int;
+        int result_measurement_2 = system(command_measurement_2.c_str());
+        if (result_measurement_2 == 2) return 2;
 
         // ---- GENERATE FIGURES ---- //
         std::string command_figure = "./figure_generator " + file_without_extension + " 0 " + output_path;

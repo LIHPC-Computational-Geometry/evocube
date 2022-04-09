@@ -27,12 +27,14 @@ int main(int argc, char** argv) {
     for(const std::filesystem::directory_entry& dir_entry : std::filesystem::directory_iterator(INPUT_DATA_PATH))//interators have no order -> sort by alphabetical order with a set
         entries_sorted_by_name.insert(dir_entry);
 
+    int success_count = 0;
+
     for(const std::filesystem::directory_entry& dir_entry : entries_sorted_by_name) {
         if(!dir_entry.is_directory()) continue;
         std::string current_filepath = dir_entry.path().string();
         std::cout << "Working on " << current_filepath << " : ";
-        int status_code = latex.add_mesh(dir_entry.path(),INPUT_POLYCUBE_TAGNAME);
-        if(status_code == 1) {
+        int status_code = latex.add_mesh(dir_entry.path(), INPUT_POLYCUBE_TAGNAME);
+        if (status_code == 1) {
             coloredPrint("Some/all figures are missing","red");
             missing_figs_meshes.push_back(current_filepath);
         }
@@ -50,6 +52,7 @@ int main(int argc, char** argv) {
         }
         else {
             std::cout << "Done" << std::endl;
+            success_count ++;
         }
     }
 
@@ -71,6 +74,8 @@ int main(int argc, char** argv) {
     }
     if(missing_figs_meshes.empty() && invalid_labeling_meshes.empty() && no_logs_meshes.empty())
         coloredPrint("No figure missing", "green");
+    coloredPrint("Success: " + std::to_string(success_count) + " /"
+                             + std::to_string(entries_sorted_by_name.size()), "green");
     std::cout << "---------------------------" << std::endl;
     return 0;
 }
