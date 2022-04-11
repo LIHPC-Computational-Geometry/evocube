@@ -35,8 +35,14 @@ int main(){
     bool break_after_first = false;
     bool skip_first = false;
     bool skip_if_folder_exists = false;
-    bool skip_already_valid = false;
+    bool skip_already_valid = true;
     bool skip_logs_exist = false;
+    bool remesh_invalid = false;
+
+    if (remesh_invalid){
+        skip_already_valid = true;
+        tet_mesh_already_computed = false;
+    }
 
     //input_path = "../data/DATASET/OM_cad_meshes/";
     // "../data/2019-OctreeMeshing/input/smooth/"

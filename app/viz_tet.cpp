@@ -10,6 +10,7 @@
 
 #include "mesh_io.h"
 #include "flagging_utils.h"
+#include "logging.h"
 
 // Input polygon
 Eigen::MatrixXd V;
@@ -21,6 +22,7 @@ Eigen::MatrixXi TT;
 Eigen::MatrixXd tet_colors;
 
 bool display_labeling = true;
+bool show_only_invalid = false;
 std::string folder;
 
 // This function is called every time a keyboard button is pressed
@@ -73,8 +75,10 @@ bool key_down(igl::opengl::glfw::Viewer& viewer, unsigned char key, int modifier
 std::vector<std::string> listDirs(const std::string& s){
     std::vector<std::string> r;
     for(auto& p : std::filesystem::directory_iterator(s))
-        if (p.is_directory())
-            r.push_back(p.path().string());
+        if (p.is_directory()){
+            if (!show_only_invalid || readLogsValue("LabelingFinal", "InvalidTotal", p.path().string() + "/logs.json") != "0")
+                r.push_back(p.path().string());
+        }
     std::sort(r.begin(), r.end());
     return r;
 }
@@ -129,7 +133,7 @@ int main(int argc, char *argv[]){
             float w = ImGui::GetContentRegionAvailWidth();
             float p = ImGui::GetStyle().FramePadding.x;
 
-            
+            ImGui::Checkbox("Display only invalid meshes", &show_only_invalid);
             
             /*if (ImGui::ListBox("Folder 1", &folder_id, folder1, IM_ARRAYSIZE(folder1), 40)){
                 int z = 0;
