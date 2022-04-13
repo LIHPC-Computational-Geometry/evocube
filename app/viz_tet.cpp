@@ -3,7 +3,8 @@
 #include <igl/opengl/glfw/imgui/ImGuiHelpers.h>
 #include <igl/opengl/glfw/imgui/ImGuiMenu.h>
 #include <igl/per_face_normals.h>
-#include <igl/readOFF.h>
+#include <igl/per_corner_normals.h>
+#include <igl/writeOBJ.h>
 #include <igl/png/readPNG.h>
 #include <filesystem>
 #include <imgui.h>
@@ -196,7 +197,7 @@ int main(int argc, char *argv[]){
 
                 Eigen::MatrixXd V_poly;
                 igl::readOBJ(folder + "/boundary.obj", V, F);
-                igl::readOBJ(folder + "/polycube_surf_int.obj", V_poly, F);
+                igl::readOBJ(folder + "/polycube_surf_int.obj", V_poly, F); // reference polycube here
                 Eigen::MatrixXd N_poly, N;
                 igl::per_face_normals(V_poly, F, N_poly);
                 igl::per_face_normals(V, F, N);
@@ -239,6 +240,46 @@ int main(int argc, char *argv[]){
                 Eigen::MatrixXd colors = colorsFromFlagging(labeling);
                 viewer.data().set_colors(colors);
 
+                for (int axis=0; axis<3; axis++){
+                    int n_f_axis = (axes.array() == axis).count();
+                    Eigen::MatrixXd V_ax(3 * n_f_axis, 3); // no need to dupl?
+                    Eigen::MatrixXi F_ax(n_f_axis, 3);
+                    Eigen::MatrixXd CN_ax(n_f_axis, 3);
+                    Eigen::MatrixXi FN_ax(n_f_axis, 3);
+                    Eigen::MatrixXd U_ax(3 * n_f_axis, 2); // per-vertex texture coord
+                    int next_f = 0;
+                    for (int i=0; i<F.rows(); i++){
+                        if (axis != axes(i)) continue;
+                        V_ax.row(3 * next_f) = V.row(F(i, 0));
+                        V_ax.row(3 * next_f + 1) = V.row(F(i, 1));
+                        V_ax.row(3 * next_f + 2) = V.row(F(i, 2));
+                        F_ax.row(next_f) = Eigen::RowVector3i(3 * next_f, 3 * next_f + 1, 3 * next_f + 2);
+                        CN_ax.row(next_f) = N.row(i);
+                        FN_ax.row(next_f) = Eigen::RowVector3i(next_f, next_f, next_f); // replace with vertex normals here?
+                        for (int fc=0; fc<3; fc++){
+                            for (int d=0; d<2; d++) {
+                                double u = V_poly(F(i, fc), (d + axes(i) + 1) % 3);
+                                u /= 1;
+                                U_ax(3 * next_f + fc, d) = u;
+                            }
+                        }
+                        next_f ++;
+                    }
+                    if (next_f != n_f_axis) std::cout << "UNEXPECTED" << std::endl;
+
+                    std::string file = "../todel_ax" + std::to_string(axis) + ".obj";
+
+                    // writeOBJ DOC:
+                    //   str  path to outputfile
+                    //   V  #V by 3 mesh vertex positions
+                    //   F  #F by 3|4 mesh indices into V
+                    //   CN #CN by 3 normal vectors
+                    //   FN  #F by 3|4 corner normal indices into CN
+                    //   TC  #TC by 2|3 texture coordinates
+                    //   FTC #F by 3|4 corner texture coord indices into TC
+                    igl::writeOBJ(file, V_ax, F_ax, CN_ax, FN_ax, U_ax, F_ax);
+                }
+                
             }
 
 
