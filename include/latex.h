@@ -49,13 +49,14 @@ private:
      * @brief Insert a 2 by \c values.size() table
      * @param values List of rows. A row being a list of strings
      *               All sub-vectors should have the same size
-     *               If a string contains a '#', it will be escaped
+     *               If a string contains '#' or '_', they will be escaped
      */
     void add_table(const std::vector<std::vector<std::string>>& values);
 
 };
 
-//replace '#' with '\\#'
-std::string escape_number_sign(std::string input);
+//replace '#' with '\\#' and '_' with '\\_'
+std::string escape_special_chars(std::string input);
+std::string remove_special_chars(std::string input);
 
 std::string double2string(double value, int precision);
