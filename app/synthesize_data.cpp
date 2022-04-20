@@ -27,6 +27,23 @@ int main(int argc, char *argv[]){
     Eigen::VectorXd min_sj_vec = Eigen::VectorXd::Constant(entries.size(), -1.0);
     Eigen::VectorXd avg_sj_vec = Eigen::VectorXd::Constant(entries.size(), -1.0);
 
+    auto fillHexInfo = [&hex_success, &min_sj_vec, &avg_sj_vec](std::string hex_path, int input_id){
+        Eigen::MatrixXi hexes;
+        Eigen::MatrixXd V_hexes;
+        Eigen::VectorXd min_sj;
+        double overall_min_sj;
+        
+        readDotMeshHex(hex_path, V_hexes, hexes);
+        overall_min_sj = compute_min_scaled_jacobian(hexes, V_hexes, min_sj);
+
+        if (overall_min_sj >= -10e-5) hex_success(input_id) = 1;
+
+        std::cout << "minSJ: " << overall_min_sj << std::endl;
+        std::cout << "avgSJ: " << min_sj.mean() << std::endl;
+        min_sj_vec(input_id) = overall_min_sj;
+        avg_sj_vec(input_id) = min_sj.mean();
+    };
+
     int input_id = -1;
     for (std::string folder: entries){
         std::cout << "Input: " << folder << std::endl;
@@ -74,34 +91,22 @@ int main(int argc, char *argv[]){
 
             std::string hex_path = folder + "/hexa_presmooth_highest_quality.mesh";
             if (!std::ifstream(hex_path).good()){
-
+                std::cout << "No hex output " << folder << std::endl;
             }
             else {
-                Eigen::MatrixXi hexes;
-                Eigen::MatrixXd V_hexes;
-                Eigen::VectorXd min_sj;
-                double overall_min_sj;
-                
-                readDotMeshHex(hex_path, V_hexes, hexes);
-                overall_min_sj = compute_min_scaled_jacobian(hexes, V_hexes, min_sj);
-
-                if (overall_min_sj >= -10e-5) hex_success(input_id) = 1;
-
-                std::cout << "minSJ: " << overall_min_sj << std::endl;
-                std::cout << "avgSJ: " << min_sj.mean() << std::endl;
-                min_sj_vec(input_id) = overall_min_sj;
-                avg_sj_vec(input_id) = min_sj.mean();
+                fillHexInfo(hex_path, input_id);
             }
         }
 
         else if (data_format == OM_HEXES){
-
+            // labeling_success is N/A
+            // for the rest, use fillHexInfo(hex_path, input_id);
         }
         else if (data_format == OURS_HEXES){
-
+            // need to find hexes_highest_quality.mesh first, like polycut
         } 
         else if (data_format == GRAPHCUT_INIT){
-
+            // only labeling success
         }
     }
 
