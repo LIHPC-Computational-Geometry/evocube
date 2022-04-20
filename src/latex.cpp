@@ -74,6 +74,7 @@ int LatexDoc::add_mesh(std::filesystem::path path_to_mesh_folder, std::string po
     ofs << "\\section{" << section_name << "}%" << std::endl;
     ofs << "\\label{sec:" << label << "}%" << std::endl;
     ofs << "{%" << std::endl;
+    ofs << "\\small%" << std::endl;
     ofs << "\\centering%" << std::endl;
 
     // TABLE ABOUT THE INPUT MESH
@@ -90,7 +91,6 @@ int LatexDoc::add_mesh(std::filesystem::path path_to_mesh_folder, std::string po
     // INPUT MESH FIGURE
 
     ofs << "\\par" << std::endl;
-    ofs << "\\vspace{-20pt}%" << std::endl;
     figures_are_missing |= add_pictures(path_to_mesh_folder,1,section_name + ", input");
 
     // TABLES ABOUT THE LABELING
@@ -100,7 +100,6 @@ int LatexDoc::add_mesh(std::filesystem::path path_to_mesh_folder, std::string po
         ofs << "\\textit{Failed to find a valid labeling}" << std::endl;
         //show the invalid labeling anyway, but not the polycube
         ofs << "\\par" << std::endl;
-        ofs << "\\vspace{-20pt}%" << std::endl;
         figures_are_missing |= add_pictures(path_to_mesh_folder,4,section_name + ", labelling");
         ofs << "}%" << std::endl;
         ofs << "\\clearpage%" << std::endl;
@@ -111,7 +110,6 @@ int LatexDoc::add_mesh(std::filesystem::path path_to_mesh_folder, std::string po
     }
 
     ofs << "\\par%" << std::endl;
-    ofs << "\\vspace{15pt}%" << std::endl;
     double graphcut_score, final_score;
     graphcut_score = std::stod(j.value<std::string>("/LabelingGraphCut/ScoreFinal"_json_pointer,"NAN"));
     final_score = std::stod(j.value<std::string>("/LabelingFinal/ScoreFinal"_json_pointer,"NAN"));
@@ -158,13 +156,11 @@ int LatexDoc::add_mesh(std::filesystem::path path_to_mesh_folder, std::string po
     // LABELLING FIGURE
 
     ofs << "\\par" << std::endl;
-    ofs << "\\vspace{-20pt}%" << std::endl;
     figures_are_missing |= add_pictures(path_to_mesh_folder,4,section_name + ", labelling");
 
     // TABLE ABOUT THE POLYCUBE
 
     ofs << "\\par%" << std::endl;
-    ofs << "\\vspace{15pt}%" << std::endl;
     table.clear();
     table.push_back({"angle/area dist.","stretch"});
     table.push_back({
@@ -177,7 +173,6 @@ int LatexDoc::add_mesh(std::filesystem::path path_to_mesh_folder, std::string po
     // POLYCUBE FIGURE
 
     ofs << "\\par" << std::endl;
-    ofs << "\\vspace{-20pt}%" << std::endl;
     figures_are_missing |= add_pictures(path_to_mesh_folder,0,section_name + ", polycube");
 
     ofs << "\\par%" << std::endl;
@@ -220,7 +215,6 @@ bool LatexDoc::add_pictures(std::filesystem::path path_to_mesh_folder, int figur
         ofs << "\\includegraphics[width=\\linewidth]{" + fig3 + "}%" << std::endl;
         ofs << "\\end{subfigure}%" << std::endl;
 
-        ofs << "\\vspace{-20pt}%" << std::endl;
         ofs << "\\caption{" << caption << "}%" << std::endl;
         ofs << "\\end{figure}%" << std::endl;
         return false;
