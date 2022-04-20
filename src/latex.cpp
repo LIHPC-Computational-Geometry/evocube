@@ -59,6 +59,15 @@ int LatexDoc::add_mesh(std::filesystem::path path_to_mesh_folder, std::string po
     if (j.empty()) 
         return 3;
 
+#ifdef REMOVE_INPUT_TRI_SUFFIX
+    if(mesh_name.size() > 10) {
+        //if ends with "_input_tri", remove this suffix
+        if( mesh_name.substr(mesh_name.size()-10,10) == "_input_tri" ) {
+            mesh_name.resize(mesh_name.size()-10);
+        }
+    }
+#endif
+
     section_name = escape_special_chars(mesh_name);
     label = remove_special_chars(mesh_name);
     
@@ -245,7 +254,7 @@ void LatexDoc::add_table(const std::vector<std::vector<std::string>>& values) {
     ofs << "\\end{tabular}%" << std::endl;
 }
 
-std::string escape_special_chars(std::string input) {
+std::string escape_special_chars(const std::string input) {
     std::string output;
     for(int pos = 0; pos < input.length(); pos++) {
         if( (input[pos] == '#') ||
@@ -255,7 +264,7 @@ std::string escape_special_chars(std::string input) {
     return output;
 }
 
-std::string remove_special_chars(std::string input) {
+std::string remove_special_chars(const std::string input) {
     std::string output;
     for(int pos = 0; pos < input.length(); pos++) {
         if( (input[pos] != '#') && 

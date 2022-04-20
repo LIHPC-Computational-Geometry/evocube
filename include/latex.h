@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+#define REMOVE_INPUT_TRI_SUFFIX
+
 class LatexDoc {
 
 public:
@@ -56,7 +58,7 @@ private:
 };
 
 //replace '#' with '\\#' and '_' with '\\_'
-std::string escape_special_chars(std::string input);
-std::string remove_special_chars(std::string input);
+std::string escape_special_chars(const std::string input);
+std::string remove_special_chars(const std::string input);
 
 std::string double2string(double value, int precision);
