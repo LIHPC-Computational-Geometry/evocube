@@ -89,14 +89,6 @@ Eigen::MatrixXd colorsFromFlagging(const Eigen::VectorXi& flagging){
 
     color_map = color_map.array() * 1.1;
 
-
-    // TODO REMOVE: flipping for a figure
-    bool reverse_whites = false;
-    if (reverse_whites){
-        color_map.row(3) = Eigen::RowVector3d(235.0/255, 235.0/255, 235.0/255);
-        color_map.row(2) = color_map.row(3).array() - 1.2 * diff/255.0;
-    }
-
     for (int i=0; i<flagging.rows(); i++){
         flagging_colors.row(i) = color_map.row(flagging(i));
     }

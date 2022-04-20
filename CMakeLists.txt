@@ -75,3 +75,7 @@ target_link_libraries(figure_generator igl::core igl::tetgen igl::opengl_glfw ig
 add_executable(supplemental_generator ${SRCFILES} app/supplemental_generator.cpp)
 include_directories(include)
 target_link_libraries(supplemental_generator igl::core igl::tetgen ${EVOCUBE_LIBS})
+
+add_executable(synthesize_data  ${SRCFILES} app/synthesize_data.cpp)
+include_directories(include)
+target_link_libraries(synthesize_data igl::core igl::tetgen ${EVOCUBE_LIBS})
