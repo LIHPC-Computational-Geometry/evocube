@@ -69,10 +69,8 @@ int LatexDoc::add_mesh(std::filesystem::path path_to_mesh_folder, std::string po
 #endif
 
     section_name = escape_special_chars(mesh_name);
-    label = remove_special_chars(mesh_name);
     
     ofs << "\\section{" << section_name << "}%" << std::endl;
-    ofs << "\\label{sec:" << label << "}%" << std::endl;
     ofs << "{%" << std::endl;
     ofs << "\\small%" << std::endl;
     ofs << "\\centering%" << std::endl;
