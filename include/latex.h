@@ -8,6 +8,28 @@
 
 #define REMOVE_INPUT_TRI_SUFFIX
 
+struct time_plot_entry {
+    double pre_optimization;
+    double individual_selection;
+    double individual_mutations;
+    double charts_and_turning_points;
+    double fitness_evaluation;
+    double crossing;
+    double insertion_in_archive;
+    double post_optimization;
+    double genetics;
+};
+#define INIT_TIME_PLOT_ENTRY(struct) \
+    (struct).pre_optimization = 0.0; \
+    (struct).individual_selection = 0.0; \
+    (struct).individual_mutations = 0.0; \
+    (struct).charts_and_turning_points = 0.0; \
+    (struct).fitness_evaluation = 0.0; \
+    (struct).crossing = 0.0; \
+    (struct).insertion_in_archive = 0.0; \
+    (struct).post_optimization = 0.0; \
+    (struct).genetics = 0.0;
+
 class LatexDoc {
 
 public:
@@ -34,9 +56,9 @@ public:
      *          2 if labeling invalid (given the log file)  -> create a page saying no valid labeling was found
      *          3 if the log file is not found              -> mesh skipped
      */
-    int add_mesh(std::filesystem::path path_to_mesh_folder, std::string polycube_tagname = "/FastPolycubeFloat");
+    int add_mesh(std::filesystem::path path_to_mesh_folder, std::string polycube_tagname, time_plot_entry& timings);
 
-    void add_time_plot(const std::array<double,8>& cpu, const std::array<double,8>& real);
+    void add_time_plot(const time_plot_entry& cpu, const time_plot_entry& real);
 
 private:
     std::ofstream ofs;

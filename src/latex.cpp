@@ -32,6 +32,7 @@ LatexDoc::LatexDoc(std::string filename)
     ofs << "\\usepackage{xcolor}%" << std::endl;
     ofs << "\\usepackage{tikz}%" << std::endl;
     ofs << "\\usepackage{pgfplots}%" << std::endl;
+    ofs << "\\pgfplotsset{compat=1.17}%" << std::endl;
     ofs << "%" << std::endl;
     ofs << "%" << std::endl;
     ofs << "%" << std::endl;
@@ -50,7 +51,7 @@ void LatexDoc::add_subpage(std::filesystem::path path_to_subpage) {
     ofs << "%" << std::endl;
 }
 
-int LatexDoc::add_mesh(std::filesystem::path path_to_mesh_folder, std::string polycube_tagname) {
+int LatexDoc::add_mesh(std::filesystem::path path_to_mesh_folder, std::string polycube_tagname, time_plot_entry& timings) {
 
     bool figures_are_missing = false;
     std::string mesh_name = path_to_mesh_folder.filename(), section_name = "", label = "";
@@ -156,6 +157,17 @@ int LatexDoc::add_mesh(std::filesystem::path path_to_mesh_folder, std::string po
     });
     add_table(table);
 
+    //update the timing counters
+    timings.pre_optimization             += std::stod(j.value<std::string>("/Timing/PreGenetics"_json_pointer,"NAN"));
+    timings.individual_selection         += std::stod(j.value<std::string>("/Timing/CreateIndiv"_json_pointer,"NAN"));
+    timings.individual_mutations         += std::stod(j.value<std::string>("/Timing/Mutations"_json_pointer,"NAN"));
+    timings.charts_and_turning_points    += std::stod(j.value<std::string>("/Timing/ChartsAndTps"_json_pointer,"NAN"));
+    timings.fitness_evaluation           += std::stod(j.value<std::string>("/Timing/Eval"_json_pointer,"NAN"));
+    timings.crossing                     += std::stod(j.value<std::string>("/Timing/Cross"_json_pointer,"NAN"));
+    timings.insertion_in_archive         += std::stod(j.value<std::string>("/Timing/Archive"_json_pointer,"NAN"));
+    timings.post_optimization            += std::stod(j.value<std::string>("/Timing/PostGenetics"_json_pointer,"NAN"));
+    timings.genetics                     += std::stod(j.value<std::string>("/Timing/Genetics"_json_pointer,"NAN"));
+
     // LABELLING FIGURE
 
     ofs << "\\par" << std::endl;
@@ -188,7 +200,7 @@ int LatexDoc::add_mesh(std::filesystem::path path_to_mesh_folder, std::string po
     return figures_are_missing;// 0 = good, 1 = some figs missing
 }
 
-void LatexDoc::add_time_plot(const std::array<double,8>& cpu, const std::array<double,8>& real) {
+void LatexDoc::add_time_plot(const time_plot_entry& cpu, const time_plot_entry& real) {
     ofs << "\\definecolor{preliminary}{HTML}{dfff00}%" << std::endl;
     ofs << "\\definecolor{createindiv}{HTML}{ffbf00}%" << std::endl;
     ofs << "\\definecolor{mutations}{HTML}{ff7f50}%" << std::endl;
@@ -217,34 +229,34 @@ void LatexDoc::add_time_plot(const std::array<double,8>& cpu, const std::array<d
     ofs << "    tick label style={font=\\footnotesize},%" << std::endl;
     ofs << "    legend style={font=\\footnotesize},%" << std::endl;
     ofs << "    label style={font=\\footnotesize},%" << std::endl;
-    ofs << "    xtick={0,50,100},%" << std::endl;
-    ofs << "    width=0.5\\linewidth,%" << std::endl;
+    ofs << "    xtick={0,50000,100000,150000,200000},%" << std::endl;
+    ofs << "    width=0.8\\linewidth,%" << std::endl;
     ofs << "    bar width=6mm,%" << std::endl;
     ofs << "    xlabel={Time in ms},%" << std::endl;
     ofs << "    yticklabels={CPU time, Real time},%" << std::endl;
     ofs << "    xmin=0,%" << std::endl;
-    ofs << "    xmax=200,%" << std::endl;
+    ofs << "    xmax=200000,%" << std::endl;
     ofs << "    area legend,%" << std::endl;
     ofs << "    y=8mm,%" << std::endl;
     ofs << "    enlarge y limits={abs=0.625},%" << std::endl;
     ofs << "]%" << std::endl;
 
     ofs << "\\addplot[preliminary,fill=preliminary] coordinates%" << std::endl;
-    ofs << "{(" << cpu[0] << ",0) (" << real[0] << ",1)};%" << std::endl;
+    ofs << "{(" << cpu.pre_optimization << ",0) (" << real.pre_optimization << ",1)};%" << std::endl;
     ofs << "\\addplot[createindiv,fill=createindiv] coordinates%" << std::endl;
-    ofs << "{(" << cpu[1] << ",0) (" << real[1] << ",1)};%" << std::endl;
+    ofs << "{(" << cpu.individual_selection << ",0) (" << real.individual_selection << ",1)};%" << std::endl;
     ofs << "\\addplot[mutations,fill=mutations] coordinates%" << std::endl;
-    ofs << "{(" << cpu[2] << ",0) (" << real[2] << ",1)};%" << std::endl;
+    ofs << "{(" << cpu.individual_mutations << ",0) (" << real.individual_mutations << ",1)};%" << std::endl;
     ofs << "\\addplot[chartscolor,fill=chartscolor] coordinates%" << std::endl;
-    ofs << "{(" << cpu[3] << ",0) (" << real[3] << ",1)};%" << std::endl;
+    ofs << "{(" << cpu.charts_and_turning_points << ",0) (" << real.charts_and_turning_points << ",1)};%" << std::endl;
     ofs << "\\addplot[fitnesscolor,fill=fitnesscolor] coordinates%" << std::endl;
-    ofs << "{(" << cpu[4] << ",0) (" << real[4] << ",1)};%" << std::endl;
+    ofs << "{(" << cpu.fitness_evaluation << ",0) (" << real.fitness_evaluation << ",1)};%" << std::endl;
     ofs << "\\addplot[crossingcolor,fill=crossingcolor] coordinates%" << std::endl;
-    ofs << "{(" << cpu[5] << ",0) (" << real[5] << ",1)};%" << std::endl;
+    ofs << "{(" << cpu.crossing << ",0) (" << real.crossing << ",1)};%" << std::endl;
     ofs << "\\addplot[archivecolor,fill=archivecolor] coordinates%" << std::endl;
-    ofs << "{(" << cpu[6] << ",0) (" << real[6] << ",1)};%" << std::endl;
+    ofs << "{(" << cpu.insertion_in_archive << ",0) (" << real.insertion_in_archive << ",1)};%" << std::endl;
     ofs << "\\addplot[postcolor,fill=postcolor] coordinates%" << std::endl;
-    ofs << "{(" << cpu[7] << ",0) (" << real[7] << ",1)};%" << std::endl;
+    ofs << "{(" << cpu.post_optimization << ",0) (" << real.post_optimization << ",1)};%" << std::endl;
     ofs << "\\legend{Pre-optimization, Individual selection,  Individual mutations, Charts and turning points, Fitness evaluation, Crossing, Insertion in archive, Post-optimization}%" << std::endl;
     ofs << "\\end{axis}  %" << std::endl;
     ofs << "\\end{tikzpicture}%" << std::endl;

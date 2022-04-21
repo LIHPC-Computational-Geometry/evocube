@@ -50,6 +50,8 @@ int main(int argc, char** argv) {
     // parse input datasets
 
     int success_count = 0, total_meshes_number = 0;
+    time_plot_entry cpu;
+    INIT_TIME_PLOT_ENTRY(cpu);
 
     for(const std::string input_path: input_paths) { //for each given input dataset
         std::string dataset_short_name = std::filesystem::path(input_path).parent_path().filename();
@@ -64,7 +66,7 @@ int main(int argc, char** argv) {
             total_meshes_number++;
             std::string current_filepath = dir_entry.path().string();
             std::cout << "Working on " << current_filepath << " : ";
-            int status_code = latex.add_mesh(dir_entry.path(), INPUT_POLYCUBE_TAGNAME);
+            int status_code = latex.add_mesh(dir_entry.path(), INPUT_POLYCUBE_TAGNAME, cpu);
             if (status_code == 1) {
                 coloredPrint("Some/all figures are missing","red");
                 missing_figs_meshes.push_back(current_filepath);
@@ -88,10 +90,22 @@ int main(int argc, char** argv) {
         }
     }
 
-    LatexDoc dummy_timeplot(std::string(output_path) + "/time_plot.tex");
-    std::array<double,8> cpu = {20,1.4,72,6,20,1.4,72,6};
-    std::array<double,8> real = {10,2,20,10,10,2,20,10};
-    dummy_timeplot.add_time_plot(cpu,real);
+    LatexDoc timeplot_doc(std::string(output_path) + "/time_plot.tex");
+    double parallel_speedup = ( cpu.insertion_in_archive + 
+                                cpu.charts_and_turning_points + 
+                                cpu.individual_selection + 
+                                cpu.crossing + 
+                                cpu.fitness_evaluation + 
+                                cpu.individual_mutations
+                              ) / cpu.genetics;
+    time_plot_entry real = cpu;
+    real.individual_selection /= parallel_speedup;
+    real.individual_mutations /= parallel_speedup;
+    real.charts_and_turning_points /= parallel_speedup;
+    real.fitness_evaluation /= parallel_speedup;
+    real.crossing /= parallel_speedup;
+    real.insertion_in_archive /= parallel_speedup;
+    timeplot_doc.add_time_plot(cpu,real);
 
     std::cout << std::endl << "-- SUMMARY ----------------" << std::endl;
     if(!missing_figs_meshes.empty()) {
