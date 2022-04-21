@@ -229,7 +229,7 @@ void LatexDoc::add_time_plot(const time_plot_entry& cpu, const time_plot_entry& 
     ofs << "    tick label style={font=\\footnotesize},%" << std::endl;
     ofs << "    legend style={font=\\footnotesize},%" << std::endl;
     ofs << "    label style={font=\\footnotesize},%" << std::endl;
-    ofs << "    xtick={0,1000,2000,3000,4000},%" << std::endl;
+    ofs << "    xtick={0,10,20,30,40,50},%" << std::endl;
     ofs << "    width=0.8\\linewidth,%" << std::endl;
     ofs << "    bar width=6mm,%" << std::endl;
     ofs << "    xlabel={Time in hours},%" << std::endl;
