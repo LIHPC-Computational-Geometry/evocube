@@ -4,6 +4,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <array>
 
 #define REMOVE_INPUT_TRI_SUFFIX
 
@@ -34,6 +35,8 @@ public:
      *          3 if the log file is not found              -> mesh skipped
      */
     int add_mesh(std::filesystem::path path_to_mesh_folder, std::string polycube_tagname = "/FastPolycubeFloat");
+
+    void add_time_plot(const std::array<double,8>& cpu, const std::array<double,8>& real);
 
 private:
     std::ofstream ofs;

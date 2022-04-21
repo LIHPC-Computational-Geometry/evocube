@@ -7,6 +7,7 @@
 #include <nlohmann/json.hpp>
 #include <iomanip>
 #include <sstream>
+#include <array>
 
 #include "latex.h"
 #include "logging.h"
@@ -27,6 +28,10 @@ LatexDoc::LatexDoc(std::string filename)
     ofs << "\\usepackage{hyperref}%" << std::endl;
     ofs << "\\usepackage{subcaption}%" << std::endl;
     ofs << "\\usepackage{graphicx}%" << std::endl;
+    ofs << "% horizontal stacked bar chart" << std::endl;
+    ofs << "\\usepackage{xcolor}%" << std::endl;
+    ofs << "\\usepackage{tikz}%" << std::endl;
+    ofs << "\\usepackage{pgfplots}%" << std::endl;
     ofs << "%" << std::endl;
     ofs << "%" << std::endl;
     ofs << "%" << std::endl;
@@ -181,6 +186,70 @@ int LatexDoc::add_mesh(std::filesystem::path path_to_mesh_folder, std::string po
     ofs << "%" << std::endl;
 
     return figures_are_missing;// 0 = good, 1 = some figs missing
+}
+
+void LatexDoc::add_time_plot(const std::array<double,8>& cpu, const std::array<double,8>& real) {
+    ofs << "\\definecolor{preliminary}{HTML}{dfff00}%" << std::endl;
+    ofs << "\\definecolor{createindiv}{HTML}{ffbf00}%" << std::endl;
+    ofs << "\\definecolor{mutations}{HTML}{ff7f50}%" << std::endl;
+    ofs << "\\definecolor{chartscolor}{HTML}{de3163}%" << std::endl;
+    ofs << "\\definecolor{fitnesscolor}{HTML}{9fe2bf}%" << std::endl;
+    ofs << "\\definecolor{crossingcolor}{HTML}{40e0d0}%" << std::endl;
+    ofs << "\\definecolor{archivecolor}{HTML}{6495ed}%" << std::endl;
+    ofs << "\\definecolor{postcolor}{HTML}{ccccff}%" << std::endl;
+
+    ofs << "\\begin{figure}%" << std::endl;
+    ofs << "\\centering%" << std::endl;
+    ofs << "\\begin{tikzpicture}%" << std::endl;
+    ofs << "\\begin{axis}[%" << std::endl;
+    ofs << "    xbar stacked,%" << std::endl;
+    ofs << "    legend style={%" << std::endl;
+    ofs << "        legend columns=2,%" << std::endl;
+    ofs << "        at={(xticklabel cs:0.5)},%" << std::endl;
+    ofs << "        anchor=north,%" << std::endl;
+    ofs << "        draw=none,%" << std::endl;
+    ofs << "        cells={anchor=west}, % left-align cell content" << std::endl;
+    ofs << "        align=left%" << std::endl;
+    ofs << "    },%" << std::endl;
+    ofs << "    ytick=data,%" << std::endl;
+    ofs << "    axis y line*=none, % line here for a vertical bar at 0" << std::endl;
+    ofs << "    axis x line*=bottom,%" << std::endl;
+    ofs << "    tick label style={font=\\footnotesize},%" << std::endl;
+    ofs << "    legend style={font=\\footnotesize},%" << std::endl;
+    ofs << "    label style={font=\\footnotesize},%" << std::endl;
+    ofs << "    xtick={0,50,100},%" << std::endl;
+    ofs << "    width=0.5\\linewidth,%" << std::endl;
+    ofs << "    bar width=6mm,%" << std::endl;
+    ofs << "    xlabel={Time in ms},%" << std::endl;
+    ofs << "    yticklabels={CPU time, Real time},%" << std::endl;
+    ofs << "    xmin=0,%" << std::endl;
+    ofs << "    xmax=200,%" << std::endl;
+    ofs << "    area legend,%" << std::endl;
+    ofs << "    y=8mm,%" << std::endl;
+    ofs << "    enlarge y limits={abs=0.625},%" << std::endl;
+    ofs << "]%" << std::endl;
+
+    ofs << "\\addplot[preliminary,fill=preliminary] coordinates%" << std::endl;
+    ofs << "{(" << cpu[0] << ",0) (" << real[0] << ",1)};%" << std::endl;
+    ofs << "\\addplot[createindiv,fill=createindiv] coordinates%" << std::endl;
+    ofs << "{(" << cpu[1] << ",0) (" << real[1] << ",1)};%" << std::endl;
+    ofs << "\\addplot[mutations,fill=mutations] coordinates%" << std::endl;
+    ofs << "{(" << cpu[2] << ",0) (" << real[2] << ",1)};%" << std::endl;
+    ofs << "\\addplot[chartscolor,fill=chartscolor] coordinates%" << std::endl;
+    ofs << "{(" << cpu[3] << ",0) (" << real[3] << ",1)};%" << std::endl;
+    ofs << "\\addplot[fitnesscolor,fill=fitnesscolor] coordinates%" << std::endl;
+    ofs << "{(" << cpu[4] << ",0) (" << real[4] << ",1)};%" << std::endl;
+    ofs << "\\addplot[crossingcolor,fill=crossingcolor] coordinates%" << std::endl;
+    ofs << "{(" << cpu[5] << ",0) (" << real[5] << ",1)};%" << std::endl;
+    ofs << "\\addplot[archivecolor,fill=archivecolor] coordinates%" << std::endl;
+    ofs << "{(" << cpu[6] << ",0) (" << real[6] << ",1)};%" << std::endl;
+    ofs << "\\addplot[postcolor,fill=postcolor] coordinates%" << std::endl;
+    ofs << "{(" << cpu[7] << ",0) (" << real[7] << ",1)};%" << std::endl;
+    ofs << "\\legend{Pre-optimization, Individual selection,  Individual mutations, Charts and turning points, Fitness evaluation, Crossing, Insertion in archive, Post-optimization}%" << std::endl;
+    ofs << "\\end{axis}  %" << std::endl;
+    ofs << "\\end{tikzpicture}%" << std::endl;
+    ofs << "\\caption{Time plot of our labeling optimization over all tested models}%" << std::endl;
+    ofs << "\\end{figure}%" << std::endl;
 }
 
 bool LatexDoc::add_pictures(std::filesystem::path path_to_mesh_folder, int figure_id, std::string caption) {

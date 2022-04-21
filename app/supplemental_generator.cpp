@@ -39,20 +39,21 @@ int main(int argc, char** argv) {
 
     // create output file
 
-    if(!std::filesystem::exists(DEFAULT_OUTPUT_PATH))
-        std::filesystem::create_directory(DEFAULT_OUTPUT_PATH);
+    if(!std::filesystem::exists(output_path))
+        std::filesystem::create_directory(output_path);
 
     std::vector<std::string> no_logs_meshes, invalid_labeling_meshes, missing_figs_meshes;
 
-    LatexDoc latex(std::string(DEFAULT_OUTPUT_PATH) + "supplemental.tex");
-    latex.add_subpage(std::filesystem::relative(INPUT_COVER_PAGE,DEFAULT_OUTPUT_PATH));//argument = where is the cover page relative to the output folder
+    LatexDoc latex(std::string(output_path) + "/supplemental.tex");
+    latex.add_subpage(std::filesystem::relative(INPUT_COVER_PAGE,output_path));//argument = where is the cover page relative to the output folder
 
     // parse input datasets
 
     int success_count = 0, total_meshes_number = 0;
 
     for(const std::string input_path: input_paths) { //for each given input dataset
-        coloredPrint("~~~~~~ DATASET " + input_path + " ~~~~~~","cyan");
+        std::string dataset_short_name = std::filesystem::path(input_path).parent_path().filename();
+        coloredPrint("~~~~~~ DATASET " + dataset_short_name + " ~~~~~~","cyan");
 
         std::set<std::filesystem::directory_entry> entries_sorted_by_name;
         for(const std::filesystem::directory_entry& dir_entry : std::filesystem::directory_iterator(input_path))//interators have no order -> sort by alphabetical order with a set
@@ -86,6 +87,11 @@ int main(int argc, char** argv) {
             }
         }
     }
+
+    LatexDoc dummy_timeplot(std::string(output_path) + "/time_plot.tex");
+    std::array<double,8> cpu = {20,1.4,72,6,20,1.4,72,6};
+    std::array<double,8> real = {10,2,20,10,10,2,20,10};
+    dummy_timeplot.add_time_plot(cpu,real);
 
     std::cout << std::endl << "-- SUMMARY ----------------" << std::endl;
     if(!missing_figs_meshes.empty()) {
