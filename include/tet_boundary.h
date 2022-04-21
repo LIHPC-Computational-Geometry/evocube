@@ -22,3 +22,7 @@ void tetVerticesToBoundaryVertices(const Eigen::MatrixXd& Vb, const Eigen::Matri
                                    const Eigen::MatrixXd& V_tets, const Eigen::MatrixXi& tets, 
                                    std::string corres_path,
                                    Eigen::MatrixXd& Vf);
+
+// TODO avoid duplicate with computeTetMeshBoundary
+void tetToBnd(const Eigen::MatrixXd& V_tets, const Eigen::MatrixXi& tets, 
+              Eigen::MatrixXd& NV, Eigen::MatrixXi& NF);

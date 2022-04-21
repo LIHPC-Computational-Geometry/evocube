@@ -16,15 +16,6 @@
 #include "flagging_utils.h"
 #include "tet_boundary.h"
 
-void tetToBnd(const Eigen::MatrixXd& V_tets, const Eigen::MatrixXi& tets, 
-              Eigen::MatrixXd& NV, Eigen::MatrixXi& NF){
-    Eigen::VectorXi Fb_to_TT, K;
-    Eigen::MatrixXi Fb;
-    igl::boundary_facets(tets, Fb, Fb_to_TT, K);
-    Eigen::VectorXi I;
-    igl::remove_unreferenced(V_tets, Fb, NV, NF, I);
-}
-
 const std::map<std::string,std::string> polycube_filename_to_JSON_tag {
     {"fast_polycube_surf.obj", "FastPolycubeFloat"},
     {"polycube_surf_int.obj",  "FastPolycubeInt"}
@@ -59,20 +50,9 @@ int main(int argc, char *argv[]){
     std::string save_path = std::filesystem::path(polycube_filepath).parent_path().string();//by default, write the logs inside the same folder as the polycube file
     if (argc > 3) save_path = argv[3];
 
-    // TODO cleanup and have two modes: one for tri meshes, and one for tet meshes
-
+    
     Eigen::MatrixXi F, F1, F2;
-    Eigen::MatrixXd Vb, V1, V2, V_tets1, V_tets2; // V1 reference triangle mesh, V2 deformed
-
-    // For tet meshes comparison:
-    Eigen::MatrixXi tets1, tets2;
-    /*
-    readDotMeshTet(base_name + "/vol.mesh", V_tets1, tets1);
-    readDotMeshTet(base_name + "/poly.mesh", V_tets2, tets2);
-    tetToBnd(V_tets1, tets1, V1, F1);
-    tetToBnd(V_tets2, tets2, V2, F2);
-    F = F1;
-    //*/
+    Eigen::MatrixXd V1, V2; // V1 reference triangle mesh, V2 deformed
 
     igl::readOBJ(input_filepath, V1, F);
     igl::readOBJ(polycube_filepath, V2, F2);
@@ -90,9 +70,6 @@ int main(int argc, char *argv[]){
         }
     }
     //*/
-
-    //igl::writeOBJ("../debug1.obj", V1, F);
-    //igl::writeOBJ("../debug2.obj", V2, F2);
 
     Eigen::VectorXd A1, A2;
     igl::doublearea(V1, F, A1);

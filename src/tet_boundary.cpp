@@ -117,3 +117,11 @@ void tetVerticesToBoundaryVertices(const Eigen::MatrixXd& Vb, const Eigen::Matri
     }
 }
 
+void tetToBnd(const Eigen::MatrixXd& V_tets, const Eigen::MatrixXi& tets, 
+              Eigen::MatrixXd& NV, Eigen::MatrixXi& NF){
+    Eigen::VectorXi Fb_to_TT, K;
+    Eigen::MatrixXi Fb;
+    igl::boundary_facets(tets, Fb, Fb_to_TT, K);
+    Eigen::VectorXi I;
+    igl::remove_unreferenced(V_tets, Fb, NV, NF, I);
+};
