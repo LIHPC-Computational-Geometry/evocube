@@ -18,6 +18,34 @@ struct time_plot_entry {
     double insertion_in_archive;
     double post_optimization;
     double genetics;
+
+    //divide all the values by the same number
+    time_plot_entry &operator/=(double divisor) {
+        pre_optimization /= divisor;
+        individual_selection /= divisor;
+        individual_mutations /= divisor;
+        charts_and_turning_points /= divisor;
+        fitness_evaluation /= divisor;
+        crossing /= divisor;
+        insertion_in_archive /= divisor;
+        post_optimization /= divisor;
+        genetics /= divisor;
+        return *this;
+    }
+
+    //sum of plotted values only (all except genetics)
+    double sum() const {
+        return (
+            pre_optimization + 
+            individual_selection +
+            individual_mutations + 
+            charts_and_turning_points + 
+            fitness_evaluation + 
+            crossing + 
+            insertion_in_archive + 
+            post_optimization
+        );
+    }
 };
 #define INIT_TIME_PLOT_ENTRY(struct) \
     (struct).pre_optimization = 0.0; \
@@ -51,6 +79,7 @@ public:
      * @param path_to_mesh_folder   Path to the mesh folder containing the pictures
      * @param polycube_tagname      Name of the JSON tag in which the distortion measures will be read. Must start with '/'.
      *                              For now, should be "/FastPolycubeFloat" or "/FastPolycubeInt"
+     * @param timings               Per-function timing counter that will be updated
      * @return  0 if good                                   -> mesh added
      *          1 if some pictures are missing              -> mesh added anyway
      *          2 if labeling invalid (given the log file)  -> create a page saying no valid labeling was found
@@ -58,6 +87,11 @@ public:
      */
     int add_mesh(std::filesystem::path path_to_mesh_folder, std::string polycube_tagname, time_plot_entry& timings);
 
+    /**
+     * @brief Insert a bar plot with the time spent in each part of the algorithm
+     * @param cpu       List of CPU durations (hours)
+     * @param real      List of Real time durations (hours)
+     */
     void add_time_plot(const time_plot_entry& cpu, const time_plot_entry& real);
 
 private:

@@ -105,6 +105,9 @@ int main(int argc, char** argv) {
     real.fitness_evaluation /= parallel_speedup;
     real.crossing /= parallel_speedup;
     real.insertion_in_archive /= parallel_speedup;
+    //seconds to hours
+    cpu /= 60.0;
+    real /= 60.0;
     timeplot_doc.add_time_plot(cpu,real);
 
     std::cout << std::endl << "-- SUMMARY ----------------" << std::endl;
