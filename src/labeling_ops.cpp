@@ -124,7 +124,7 @@ void directionalPathMutation(const std::vector<std::vector<int>>& VT,
         }
 
         if (candidates.size() == 0){
-            coloredPrint("No more candidates in greedy path selection", "red");
+            coloredPrint("No more candidates in greedy path selection", "yellow");
             return;
         }
 

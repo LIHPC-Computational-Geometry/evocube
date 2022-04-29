@@ -221,7 +221,7 @@ int main(){
                                             + "../octreemeshes_cad_screenshots/" 
                                             + file_without_mesh
                                             + ".png";
-                std::filesystem::copy(png_screenshot, new_folder + "/screenshot.png");
+                //std::filesystem::copy(png_screenshot, new_folder + "/screenshot.png");
                 readDotMeshTet(output_mesh, TV, TT);
                 break;
             }

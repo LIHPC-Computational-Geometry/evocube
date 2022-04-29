@@ -118,6 +118,7 @@ int main(int argc, char *argv[]){
         double overall_min_sj;
         
         readDotMeshHex(hex_path, V_hexes, hexes);
+        if (hexes.rows() == 0) return;
         overall_min_sj = compute_min_scaled_jacobian(hexes, V_hexes, min_sj);
 
         if (overall_min_sj >= -10e-5) hex_success(input_id) = 1;
@@ -260,7 +261,7 @@ int main(int argc, char *argv[]){
     std::cout << "hex success: " << hex_success.sum() << " / " << hex_success.rows() << std::endl;
     std::cout << "avg minSJ: " << min_sj_vec.mean() << std::endl;
     std::cout << "avg avgSJ: " << avg_sj_vec.mean() << std::endl;
-    std::cout << "poly_area_disto_vec: " << poly_area_disto_vec << std::endl;
+    //std::cout << "poly_area_disto_vec: " << poly_area_disto_vec << std::endl;
     std::cout << "poly success: " << poly_success.sum() << " / " << poly_success.rows() << std::endl;
     
 }

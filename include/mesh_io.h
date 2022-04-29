@@ -142,11 +142,6 @@ void triObjtoMeshTet(std::string input_path, std::string output_path,
     // -a Applies a maximum tetrahedron volume constraint.
     // -Y keep boundary mesh from input
 
-    int mesh_refinement = 100;
-    double max_tet_volume = 1.0;
-    std::string arguments = "pqma" + std::to_string(max_tet_volume);
-
-    //int success = igl::copyleft::tetgen::tetrahedralize(V, F, "pYq1000000a10000.0", TV, TT, TF);
     int success = igl::copyleft::tetgen::tetrahedralize(V, F, "pqa", TV, TT, TF);
     writeDotMeshTet(output_path, TV, TT);
     if (TV.rows() > 70000) std::cout << "Warning! Generated mesh is really large." << std::endl;
