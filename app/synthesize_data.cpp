@@ -1,6 +1,7 @@
 
 #include <Eigen/Core>
 #include <igl/readOBJ.h>
+#include <igl/writeOBJ.h>
 #include <iostream>
 #include <fstream>
 #include <set>
@@ -93,13 +94,14 @@ double volumetricPolycubeMeasure(std::string base_name){
 }
 
 int main(int argc, char *argv[]){
-    DATA_FORMAT data_format = OURS_ABC;
+    DATA_FORMAT data_format = OURS_POLYCUBES;
     std::string folder_path = argv[1];
 
     std::set<std::string> entries; // set orders entries
     for (auto &entry : std::filesystem::directory_iterator(folder_path)){
         std::string str = std::string(entry.path());
-        if (data_format == OURS_HEXES && str.substr(str.size() - 15, str.size()) != "_outputhex.mesh") continue;
+        if (data_format == OM_HEXES && str.substr(str.size() - 5, str.size()) != ".mesh") continue;
+        if (data_format == OURS_HEXES && str.substr(str.size() - 15, str.size()) != "_outputhex.mesh" && str.substr(str.size() - 11, str.size()) != "_hexes.mesh") continue;
         if (data_format == OURS_POLYCUBES && str.substr(str.size() - 12, str.size()) != "_remesh.mesh") continue;
         entries.insert(str);
     }
@@ -118,7 +120,7 @@ int main(int argc, char *argv[]){
         double overall_min_sj;
         
         readDotMeshHex(hex_path, V_hexes, hexes);
-        if (hexes.rows() == 0) return;
+        if (hexes.rows() < 1) return;
         overall_min_sj = compute_min_scaled_jacobian(hexes, V_hexes, min_sj);
 
         if (overall_min_sj >= -10e-5) hex_success(input_id) = 1;
@@ -185,12 +187,13 @@ int main(int argc, char *argv[]){
 
         else if (data_format == OM_HEXES){
             // labeling_success is N/A
-            // for the rest, use fillHexInfo(hex_path, input_id);
+            fillHexInfo(folder, input_id);
         }
         else if (data_format == OURS_HEXES){
             // need to find hexes_highest_quality.mesh first, like polycut
 
             std::vector<std::string> candidates = {"_outputhex.mesh", 
+                                                   "_hexes.mesh",
                                                    //"_outputhex_coarse01.mesh", too coarse to make sense
                                                    "_outputhex_coarse05.mesh",
                                                    "_outputhex_fine.mesh",
@@ -199,9 +202,13 @@ int main(int argc, char *argv[]){
                                                    "_result_coarse05.mesh",
                                                    "_result_fine.mesh"};
 
-            if (folder.substr(folder.size() - 15, folder.size()) != "_outputhex.mesh") continue;
+            //if (folder.substr(folder.size() - 15, folder.size()) != "_outputhex.mesh") continue;
 
             std::string model_name = folder.substr(0, folder.size() - 15);
+            if (folder.substr(folder.size() - 11, folder.size()) == "_hexes.mesh"){
+                model_name = folder.substr(0, folder.size() - 11);
+            }
+
             std::string model = model_name.substr(model_name.find_last_of("/\\") + 1,
                                  model_name.size());
 
@@ -213,6 +220,9 @@ int main(int argc, char *argv[]){
                 Eigen::MatrixXd V_hexes;
                 Eigen::VectorXd min_sj;
                 double overall_min_sj;
+                if (!std::ifstream(model_name + name).good()) {
+                    continue;
+                }
                 readDotMeshHex(model_name + name, V_hexes, hexes);
                 overall_min_sj = compute_min_scaled_jacobian(hexes, V_hexes, min_sj);
                 std::cout << overall_min_sj << std::endl;
@@ -224,7 +234,7 @@ int main(int argc, char *argv[]){
             }
 
             std::cout << "Best " << best_sj << " from " << best_candidate << std::endl;
-            //std::filesystem::copy(model_name + best_candidate, "../best/" + model + "_best.mesh");
+            std::filesystem::copy(model_name + best_candidate, "../best/" + model + "_best.mesh");
             fillHexInfo(model_name + best_candidate, input_id);
         }
         else if (data_format == OURS_POLYCUBES){
@@ -234,8 +244,35 @@ int main(int argc, char *argv[]){
             std::string model = model_name.substr(model_name.find_last_of("/\\") + 1,
                                  model_name.size());
 
-            poly_area_disto_vec(input_id) = volumetricPolycubeMeasure(model_name);
+            // -- Tet to surf -- //
+            Eigen::MatrixXi F, F1, F2;
+            Eigen::MatrixXd V1, V2, V_tets1, V_tets2; // V1 reference triangle mesh, V2 deformed
+            Eigen::MatrixXi tets1, tets2;
+            readDotMeshTet(model_name + "_remesh.mesh", V_tets1, tets1);
+            readDotMeshTet(model_name + "_defo.mesh", V_tets2, tets2);
+            tetToBnd(V_tets1, tets1, V1, F1);
+            tetToBnd(V_tets2, tets2, V2, F2);
+            F = F1;
+            // -- End Tet to surf -- //
+
+            poly_area_disto_vec(input_id) = surfacePolycubeMeasure(V1, F, V2, F2);
             if (poly_area_disto_vec(input_id) < 2.0) poly_success(input_id) = 1;
+
+            std::string path_to_dataset = "../data/DATASET2/simple_mambo/" + model + "/";
+            std::cout << "Copying final surf polycube there: " << path_to_dataset << std::endl;
+            if (!std::ifstream(path_to_dataset + "boundary.obj").good()){
+                coloredPrint("Bad path? " + path_to_dataset, "red");
+            }
+            else coloredPrint("Good path " + path_to_dataset, "green");
+            //igl::writeOBJ(path_to_dataset + "boundary_remesh.obj", V1, F);
+            Eigen::MatrixXd V_init;
+            Eigen::MatrixXi F_init;
+            igl::readOBJ(path_to_dataset + "/boundary.obj", V_init, F_init);
+            igl::writeOBJ(path_to_dataset + "/polycube_final.obj", V2, F_init);
+
+            std::cout << "Measures for the final polycube surf" << std::endl;
+
+
         }
         else if (data_format == OURS_ABC) {
             std::string hex_path = folder + "/hexes.mesh";

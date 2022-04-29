@@ -342,7 +342,7 @@ igl::embree::EmbreeRenderer
           G(x,y) = clamp(face_proj*c(1));
           B(x,y) = clamp(face_proj*c(2));
 
-          double threshold = 0.40;
+          double threshold = 0.05;
           Eigen::RowVector3f p = V.row(F(hit.id, 1)) * hit.u 
                                + V.row(F(hit.id, 2)) * hit.v 
                                + V.row(F(hit.id, 0)) * (1 - hit.u - hit.v); // WHY THE F ARE BARYCENTRIC DONE SUCH THAT u CORRESPONDS TO 1 AND NOT 0 ?????!!!!

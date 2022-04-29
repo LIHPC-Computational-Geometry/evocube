@@ -12,6 +12,7 @@
 #include "mesh_io.h"
 #include "flagging_utils.h"
 #include "logging.h"
+#include "tet_boundary.h"
 
 // Input polygon
 Eigen::MatrixXd V;
@@ -192,12 +193,80 @@ int main(int argc, char *argv[]){
                 }*/
             }
 
-            if (ImGui::Button("Show polycube")){
+
+
+            if (ImGui::Button("Show init", ImVec2(-1, 0))){
+                viewer.data().clear();
+                igl::readOBJ(folder + "/boundary.obj", V, F);
+                viewer.data().set_mesh(V, F);
+                Eigen::MatrixXd N;
+                igl::per_face_normals(V, F, N);
+                viewer.data().set_normals(-N);
+                Eigen::VectorXi labeling = openFlagging(folder + "/labeling_init.txt", F.rows());
+                viewer.data().set_colors(colorsFromFlagging(labeling));
+
+                Eigen::VectorXi axes(F.rows());
+                for (int i=0; i<F.rows(); i++) axes(i) = flagToAxis(labeling(i));
+
+                for (int axis=0; axis<3; axis++){
+                    int n_f_axis = (axes.array() == axis).count();
+                    Eigen::MatrixXd V_ax(3 * n_f_axis, 3); // no need to dupl?
+                    Eigen::MatrixXi F_ax(n_f_axis, 3);
+                    int next_f = 0;
+                    for (int i=0; i<F.rows(); i++){
+                        if (axis != axes(i)) continue;
+                        V_ax.row(3 * next_f) = V.row(F(i, 0));
+                        V_ax.row(3 * next_f + 1) = V.row(F(i, 1));
+                        V_ax.row(3 * next_f + 2) = V.row(F(i, 2));
+                        F_ax.row(next_f) = Eigen::RowVector3i(3 * next_f, 3 * next_f + 1, 3 * next_f + 2);
+                        next_f ++;
+                    }
+                    if (next_f != n_f_axis) std::cout << "UNEXPECTED" << std::endl;
+
+                    std::string file = "../todel_ax" + std::to_string(axis) + ".obj";
+                    igl::writeOBJ(file, V_ax, F_ax);
+                }
+            }
+
+
+            if (ImGui::Button("Show polycube", ImVec2(-1, 0))){
                 viewer.data().clear();
 
-                Eigen::MatrixXd V_poly;
-                igl::readOBJ(folder + "/boundary.obj", V, F);
-                igl::readOBJ(folder + "/polycube_surf_int.obj", V_poly, F); // reference polycube here
+                Eigen::MatrixXd V, V_poly;
+                Eigen::MatrixXi F;
+
+                std::string model_name = dirs2_names[picked_dir2];
+                std::string dataset_name = dirs1_names[picked_dir1];
+
+                if (dataset_name == "abc"){
+                    igl::readOBJ(folder + "/boundary.obj", V, F);
+                    igl::readOBJ(folder + "/polycube_surf_int.obj", V_poly, F); // reference polycube here
+                }
+                else {
+                    std::string results_path = "../../RESULTS_Evocube/"; // TODO CHANGE THIS
+                    std::string remesh_path = results_path + "/" + dataset_name + "/" + model_name + "_remesh.mesh";
+                    std::string polycube_path = results_path + "/" + dataset_name + "/" + model_name + "_final_polycube.mesh";
+
+                    std::cout << "Looking for final results here:" << std::endl;
+                    std::cout << remesh_path << std::endl;
+                    std::cout << polycube_path << std::endl;
+
+                    Eigen::MatrixXi F1, F2;
+                    Eigen::MatrixXd V1, V2, V_tets1, V_tets2; // V1 reference triangle mesh, V2 deformed
+
+                    // For tet meshes comparison:
+                    Eigen::MatrixXi tets1, tets2;
+                    readDotMeshTet(remesh_path, V_tets1, tets1);
+                    readDotMeshTet(polycube_path, V_tets2, tets2);
+                    tetToBnd(V_tets1, tets1, V1, F1);
+                    tetToBnd(V_tets2, tets2, V2, F2);
+
+                    V = V1;
+                    V_poly = V2;
+                    F = F1;
+                }
+
+
                 Eigen::MatrixXd N_poly, N;
                 igl::per_face_normals(V_poly, F, N_poly);
                 igl::per_face_normals(V, F, N);
@@ -222,7 +291,7 @@ int main(int argc, char *argv[]){
                     for (int fc=0; fc<3; fc++){
                         for (int d=0; d<2; d++) {
                             double u = V_poly(F(f, fc), (d + axes(f) + 1) % 3);
-                            u /= 2;
+                            //u /= 2;
                             U(3*f+fc, d) = u;
                         }
                     }
@@ -243,6 +312,7 @@ int main(int argc, char *argv[]){
                 for (int axis=0; axis<3; axis++){
                     int n_f_axis = (axes.array() == axis).count();
                     Eigen::MatrixXd V_ax(3 * n_f_axis, 3); // no need to dupl?
+                    Eigen::MatrixXd V_poly_ax(3 * n_f_axis, 3); // no need to dupl?
                     Eigen::MatrixXi F_ax(n_f_axis, 3);
                     Eigen::MatrixXd CN_ax(n_f_axis, 3);
                     Eigen::MatrixXi FN_ax(n_f_axis, 3);
@@ -253,6 +323,9 @@ int main(int argc, char *argv[]){
                         V_ax.row(3 * next_f) = V.row(F(i, 0));
                         V_ax.row(3 * next_f + 1) = V.row(F(i, 1));
                         V_ax.row(3 * next_f + 2) = V.row(F(i, 2));
+                        V_poly_ax.row(3 * next_f) = V_poly.row(F(i, 0));
+                        V_poly_ax.row(3 * next_f + 1) = V_poly.row(F(i, 1));
+                        V_poly_ax.row(3 * next_f + 2) = V_poly.row(F(i, 2));
                         F_ax.row(next_f) = Eigen::RowVector3i(3 * next_f, 3 * next_f + 1, 3 * next_f + 2);
                         CN_ax.row(next_f) = N.row(i);
                         FN_ax.row(next_f) = Eigen::RowVector3i(next_f, next_f, next_f); // replace with vertex normals here?
@@ -267,7 +340,8 @@ int main(int argc, char *argv[]){
                     }
                     if (next_f != n_f_axis) std::cout << "UNEXPECTED" << std::endl;
 
-                    std::string file = "../todel_ax" + std::to_string(axis) + ".obj";
+                    std::string labeling_file = "../labeling_ax" + std::to_string(axis) + ".obj";
+                    std::string polycube_file = "../polycube_ax" + std::to_string(axis) + ".obj";
 
                     // writeOBJ DOC:
                     //   str  path to outputfile
@@ -277,7 +351,8 @@ int main(int argc, char *argv[]){
                     //   FN  #F by 3|4 corner normal indices into CN
                     //   TC  #TC by 2|3 texture coordinates
                     //   FTC #F by 3|4 corner texture coord indices into TC
-                    igl::writeOBJ(file, V_ax, F_ax, CN_ax, FN_ax, U_ax, F_ax);
+                    igl::writeOBJ(labeling_file, V_ax, F_ax, CN_ax, FN_ax, U_ax, F_ax);
+                    igl::writeOBJ(polycube_file, V_poly_ax, F_ax, CN_ax, FN_ax, U_ax, F_ax);
                 }
                 
             }

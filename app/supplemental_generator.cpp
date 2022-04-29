@@ -10,7 +10,8 @@
 
 #define DEFAULT_INPUT_PATH      "../data/DATASET_12_Avril/basic_mambo/"
 #define INPUT_COVER_PAGE        "../supplemental/cover_page.tex"
-#define INPUT_POLYCUBE_TAGNAME  "/FastPolycubeFloat" //which polycube distortions (from the the log file) to insert. "/FastPolycubeFloat" or "/FastPolycubeInt"
+//#define INPUT_POLYCUBE_TAGNAME  "/FastPolycubeFloat" 
+#define INPUT_POLYCUBE_TAGNAME  "/polycube_final.obj" //which polycube distortions (from the the log file) to insert. "/FastPolycubeFloat" or "/FastPolycubeInt"
 #define DEFAULT_OUTPUT_PATH    "../supplemental/"
 
 //usage : ./supplemental_generator [output] [input1] [input2 input3 ...]

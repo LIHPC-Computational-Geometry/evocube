@@ -28,14 +28,14 @@ int main(){
     // COMPUTING OPTIONS
     bool tet_mesh_already_computed = true; // computes tets from surface/CAD 
                                            // + preprocess tet mesh (split some tets and edges, very slow) 
-    bool labeling_already_computed = false; // Calls evolabel
-    bool hexes_already_computed = false; // Simple hexex-based method, no padding, no smoothing
+    bool labeling_already_computed = true; // Calls evolabel
+    bool hexes_already_computed = true; // Simple hexex-based method, no padding, no smoothing
 
     // DEBUG OPTIONS
     bool break_after_first = false;
     bool skip_first = false;
     bool skip_if_folder_exists = false;
-    bool skip_already_valid = true;
+    bool skip_already_valid = false;
     bool skip_logs_exist = false;
     bool remesh_invalid = false;
 
@@ -49,14 +49,14 @@ int main(){
 
 
     /*
-    input_path = "../data/2019-OctreeMeshing/input/smooth/";
+    input_path = "../data/Inputs/smooth/";
     input_type = TRI_OBJ;
     expected_extension = "obj";
     output_path = "../data/DATASET2/OM_smooth/";
     //*/
 
     /*
-    input_path = "../data/octreemeshes_cad_christophed/";
+    input_path = "../data/Inputs/octreemeshes_cad_christophed/";
     input_type = TET_MESH;
     expected_extension = "mesh";
     output_path = "../data/DATASET2/OM_cad/";
@@ -70,24 +70,31 @@ int main(){
     //*/
 
     /*
-    input_path = "../../mambo/Basic";
+    input_path = "../data/Inputs/mambo/Basic";
     input_type = CAD_STEP;
     expected_extension = "step";
     output_path = "../data/DATASET2/basic_mambo/";
     //*/
 
-    /*
-    input_path = "../../mambo/Simple";
+    //*
+    input_path = "../data/Inputs/mambo/Simple";
     input_type = CAD_STEP;
     expected_extension = "step";
     output_path = "../data/DATASET2/simple_mambo/";
     //*/
 
     /*
-    input_path = "../../mambo/Medium";
+    input_path = "../data/Inputs/mambo/Medium";
     input_type = CAD_STEP;
     expected_extension = "step";
     output_path = "../data/DATASET2/medium_mambo/";
+    //*/
+    
+    /*
+    input_path = "../data/custom/";
+    input_type = TRI_OBJ;
+    expected_extension = "obj";
+    output_path = "../data/custom_out/";
     //*/
     
     // -------------------- INIT_FROM_FOLDER --------------------
@@ -272,11 +279,16 @@ int main(){
         int result_measurement_2 = system(command_measurement_2.c_str());
         if (result_measurement_2 == 2) return 2;
 
+        std::cout << "Measures for the final polycube:" << std::endl;
+        std::string command_measurement_3 = "./measurement " + boundary_obj_path + " " + new_folder + "/polycube_final.obj";
+        int result_measurement_3 = system(command_measurement_3.c_str());
+        if (result_measurement_3 == 2) return 2;
+
         // ---- GENERATE FIGURES ---- //
         std::string command_figure = "./figure_generator " + file_without_extension + " 0 " + output_path;
         command_figure += " && ./figure_generator " + file_without_extension + " 1 " + output_path;
         command_figure += " && ./figure_generator " + file_without_extension + " 4 " + output_path;
-        int result_hexex = system(command_figure.c_str());
+        int result_figures = system(command_figure.c_str());
         
         if (break_after_first){
             std::cout << "BREAKING" << std::endl;

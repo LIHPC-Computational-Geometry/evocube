@@ -50,7 +50,7 @@
 #define DEFAULT_DATA_FODLER     "../data/"
 #define DEFAULT_MODEL           "bunny"
 #define BOUNDARY_PATH(data_folder,mesh_name)        ((data_folder) + (mesh_name) + "/boundary.obj")
-#define POLYCUBE_PATH(data_folder,mesh_name)        ((data_folder) + (mesh_name) + "/polycube_surf_int.obj")
+#define POLYCUBE_PATH(data_folder,mesh_name)        ((data_folder) + (mesh_name) + "/polycube_final.obj")
 #define FLAGGING_PATH(data_folder,mesh_name)        ((data_folder) + (mesh_name) + "/labeling.txt")
 #define FEATURE_EDGES_PATH(data_folder,mesh_name)   ((data_folder) + (mesh_name) + "/input_edges.mesh")
 

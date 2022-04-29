@@ -18,7 +18,8 @@
 
 const std::map<std::string,std::string> polycube_filename_to_JSON_tag {
     {"fast_polycube_surf.obj", "FastPolycubeFloat"},
-    {"polycube_surf_int.obj",  "FastPolycubeInt"}
+    {"polycube_surf_int.obj",  "FastPolycubeInt"},
+    {"polycube_final.obj",  "polycube_final.obj"} // oops, TODO fix this
 };
 
 #define DEFAULT_TRI_INPUT   "../data/DATASET2/OM_smooth/bunny_input_tri/boundary.obj"
@@ -51,7 +52,7 @@ int main(int argc, char *argv[]){
     if (argc > 3) save_path = argv[3];
 
     
-    Eigen::MatrixXi F, F1, F2;
+    Eigen::MatrixXi F, F2;
     Eigen::MatrixXd V1, V2; // V1 reference triangle mesh, V2 deformed
 
     igl::readOBJ(input_filepath, V1, F);

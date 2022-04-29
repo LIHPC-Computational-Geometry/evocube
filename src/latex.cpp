@@ -175,6 +175,11 @@ int LatexDoc::add_mesh(std::filesystem::path path_to_mesh_folder, std::string po
 
     // TABLE ABOUT THE POLYCUBE
 
+    // fallback TODO remove
+    if (j.value<std::string>(nlohmann::json::json_pointer(polycube_tagname+"/AngleDistortion"),"") == ""){
+        polycube_tagname = "/FastPolycubeFloat";
+    }
+
     ofs << "\\par%" << std::endl;
     table.clear();
     table.push_back({"angle/area dist.","stretch"});
