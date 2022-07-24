@@ -51,6 +51,8 @@ To compute a labeling on a triangle mesh and visualize it, simply run:
 ./evolabel path/to/boundary.obj
 ```
 
+Paste for a quick test: `./evolabel ../data/moai.obj`
+
 To go further, advanced tools used in our paper are showcased in `init_from_folder.cpp`.
 
 ### Test data

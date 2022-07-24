@@ -335,13 +335,14 @@ int main(int argc, char *argv[]){
 
         auto updateViz = [&](){
             viewer.data(hud_id).clear_edges();
+            viewer.data(hud_id).clear_points();
             viewer.data(orig_id).clear_edges();
             viewer.data(orig_id).clear_points();
 
+            Eigen::MatrixXd colors = colorsFromFlagging(displayed_indiv->getLabeling());
+            viewer.data(orig_id).set_colors(colors);
+
             if (show_indiv){
-                Eigen::MatrixXd colors = colorsFromFlagging(displayed_indiv->getLabeling());
-                viewer.data(orig_id).set_colors(colors);
-                
                 std::vector<Eigen::MatrixXd> vec_border_begs, vec_border_ends;
                 std::vector<Eigen::RowVector3d> vec_border_colors;
                 displayed_indiv->getBordersViz(vec_border_begs, vec_border_ends, vec_border_colors);

@@ -151,14 +151,21 @@ std::vector<int> graphcutTurningPoints(const std::vector<int>& bnd, const Eigen:
 
 	for (int i = 0; i < num_elem; i++ ){
         Eigen::RowVector3d edge = (V.row(bnd[i+1]) - V.row(bnd[i])).normalized();
-        for (int l = 0; l < num_labels; l++){
-            double dot = (dir.dot(edge.row(l)) - 1.0)/0.9;
-            double cost = 1 - std::exp(-(1./2.)*std::pow(dot,2));
-            data[i*num_labels+l] = (int) (100*cost);
+
+        data[i*num_labels+0] = 0;
+        data[i*num_labels+1] = 0;
+        double dot = (dir.dot(edge))/0.9;
+        double cost = 1.0 - std::exp(-(1./2.)*std::pow(dot,2));
+        if (dir.dot(edge) > 0){
+            data[i*num_labels + 0] = (int) (100.0 * cost);
         }
+        else {
+            data[i*num_labels + 1] = (int) (100.0 * cost);
+        }        
+        
     }
 
-	// binary costs
+	// binary cost coefficients
 	int *smooth = new int[num_labels*num_labels];
 	for ( int l1 = 0; l1 < num_labels; l1++ ){
 		for (int l2 = 0; l2 < num_labels; l2++ ){ 
@@ -174,14 +181,15 @@ std::vector<int> graphcutTurningPoints(const std::vector<int>& bnd, const Eigen:
 		gc->setDataCost(data);
 		gc->setSmoothCost(smooth);
 		
+        // binary costs
         for (int i=0; i<bnd.size() - 2; i++){
             Eigen::RowVector3d edge1 = (V.row(bnd[i+1]) - V.row(bnd[i])).normalized();
             Eigen::RowVector3d edge2 = (V.row(bnd[i+2]) - V.row(bnd[i+1])).normalized();
             edge1 = edge1.normalized();
             edge2 = edge2.normalized();
-            double dot = (edge1.dot(edge2)-1)/falloff_binary;
+            double dot = (edge1.dot(edge2) - 1.0)/falloff_binary;
             double cost = std::exp(-(1./2.0)*std::pow(dot,2));
-            gc->setNeighbors(i, i+1, (int) (100*cost));
+            gc->setNeighbors(i, i+1, (int) (100.0*cost));
         }
 
 		gc->expansion(2);// run expansion for 2 iterations. For swap use gc->swap(num_iterations);
