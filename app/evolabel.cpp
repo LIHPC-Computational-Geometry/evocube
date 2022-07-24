@@ -169,7 +169,6 @@ int main(int argc, char *argv[]){
             double time_eval = measureTime(time_after_charts, time_after_eval);
             double totaltime = measureTime(time_new_indiv, time_after_eval);
 
-            // TODO is this ok in //?
             sum_time_create_indiv += time_create_indiv;
             sum_time_mut += time_mut;
             sum_time_chart += time_chart;
@@ -324,7 +323,8 @@ int main(int argc, char *argv[]){
         viewer.data(orig_id).set_mesh(V, F);
 
         bool flip_label_normals = false;
-        int arch_elem = 0;
+        bool debug_option = false;
+        bool show_indiv = true;
 
         std::shared_ptr<LabelingIndividual> best_indiv = final_indiv; 
         std::shared_ptr<LabelingIndividual> displayed_indiv = best_indiv;
@@ -338,18 +338,20 @@ int main(int argc, char *argv[]){
             viewer.data(orig_id).clear_edges();
             viewer.data(orig_id).clear_points();
 
-            Eigen::MatrixXd colors = colorsFromFlagging(displayed_indiv->getLabeling());
-            viewer.data(orig_id).set_colors(colors);
-            
-            std::vector<Eigen::MatrixXd> vec_border_begs, vec_border_ends;
-            std::vector<Eigen::RowVector3d> vec_border_colors;
-            displayed_indiv->getBordersViz(vec_border_begs, vec_border_ends, vec_border_colors);
-            for (int i=0; i<vec_border_begs.size(); i++){
-                viewer.data(hud_id).add_edges(vec_border_begs[i], vec_border_ends[i], vec_border_colors[i]);
-            }
+            if (show_indiv){
+                Eigen::MatrixXd colors = colorsFromFlagging(displayed_indiv->getLabeling());
+                viewer.data(orig_id).set_colors(colors);
+                
+                std::vector<Eigen::MatrixXd> vec_border_begs, vec_border_ends;
+                std::vector<Eigen::RowVector3d> vec_border_colors;
+                displayed_indiv->getBordersViz(vec_border_begs, vec_border_ends, vec_border_colors);
+                for (int i=0; i<vec_border_begs.size(); i++){
+                    viewer.data(hud_id).add_edges(vec_border_begs[i], vec_border_ends[i], vec_border_colors[i]);
+                }
 
-            Eigen::MatrixXd tp_points = displayed_indiv->getTurningPointsMat();
-            viewer.data(hud_id).add_points(tp_points, Eigen::RowVector3d(1.0, 1.0, 0.0));
+                Eigen::MatrixXd tp_points = displayed_indiv->getTurningPointsMat();
+                viewer.data(hud_id).add_points(tp_points, Eigen::RowVector3d(1.0, 1.0, 0.0));
+            }
         };
 
         //helper function for menu
@@ -365,6 +367,7 @@ int main(int argc, char *argv[]){
             ImGui::SetNextWindowSize(ImVec2(350, -1), ImGuiCond_FirstUseEver);
             if (ImGui::Begin("IGL")) {
                 if (ImGui::Button("Init labeling", ImVec2(-1, 0))){
+                    show_indiv = true;
                     displayed_indiv = ancestor;
                     viewer.data(orig_id).set_mesh(V, F);
                     //Eigen::MatrixXd colors = colorsFromFlagging(labeling_init);
@@ -372,69 +375,72 @@ int main(int argc, char *argv[]){
                     updateViz();
                 }
                 if (ImGui::Button("Labeling", ImVec2(-1, 0))){
+                    show_indiv = true;
                     displayed_indiv = best_indiv;
                     viewer.data(orig_id).set_mesh(V, F);
                     updateViz();
                 }
-                if (ImGui::Button("Fastbndpolycube", ImVec2(-1, 0))){
+                if (ImGui::Button("Fast boundary polycube", ImVec2(-1, 0))){
+                    show_indiv = false;
+                    displayed_indiv = best_indiv;
                     viewer.data(orig_id).set_mesh(def_V, F);
-                }
-                if (ImGui::Button("Threshold dist", ImVec2(-1, 0))){
-                    viewer.data(orig_id).set_colors(threshold_colors);
-                }
-
-                if (ImGui::SliderInt("Archive labeling", &arch_elem, 0, archive.getSize() - 1)){
-                    displayed_indiv = archive.getIndiv(arch_elem);
-                    viewer.data(orig_id).set_mesh(V, F);
                     updateViz();
                 }
 
-                if (ImGui::Button("Save labeling to folder", ImVec2(-1, 0))){
-                    std::string folder = igl::file_dialog_save();
-                    folder = folder.substr(0, folder.find_last_of("/\\") + 1);
-                    Eigen::VectorXi save_labeling = final_indiv->getLabeling();
-                    saveFlagging(folder + "labeling.txt", save_labeling);
-                    saveFlaggingOnTets(folder + "labeling_on_tets.txt", folder + "tris_to_tets.txt", save_labeling);
-                }
+                ImGui::Separator();
+                
+                make_checkbox("Show mesh", viewer.data(orig_id).show_lines);
+                ImGui::Checkbox("Debug mode", &debug_option);
+                
+                if (debug_option){
+                    if (ImGui::Button("Threshold dist", ImVec2(-1, 0))){
+                        viewer.data(orig_id).set_colors(threshold_colors);
+                    }
 
-                if (make_checkbox("Show timestamps", viewer.data(orig_id).show_custom_labels)){
-                    viewer.data(orig_id).clear_labels();
-                    Eigen::VectorXi timestamps = final_indiv->getTimestamps();
-                    Eigen::MatrixXd N;
-                    igl::per_face_normals(V, F, N);
-                    if (flip_label_normals) N = -N;
-                    double l_avg = igl::avg_edge_length(V, F);
-                    for (int i=0; i<F.rows(); i++){
-                        Eigen::RowVector3d p = (V.row(F(i,0)) + V.row(F(i,1)) + V.row(F(i,2)))/3.0;
-                        p -= N.row(i) * l_avg / 3.0;
-                        viewer.data(orig_id).add_label(p, std::to_string(timestamps(i)));
+                    if (ImGui::Button("Save labeling to folder", ImVec2(-1, 0))){
+                        std::string folder = igl::file_dialog_save();
+                        folder = folder.substr(0, folder.find_last_of("/\\") + 1);
+                        Eigen::VectorXi save_labeling = final_indiv->getLabeling();
+                        saveFlagging(folder + "labeling.txt", save_labeling);
+                        saveFlaggingOnTets(folder + "labeling_on_tets.txt", folder + "tris_to_tets.txt", save_labeling);
+                    }
+
+                    if (make_checkbox("Show timestamps", viewer.data(orig_id).show_custom_labels)){
+                        viewer.data(orig_id).clear_labels();
+                        Eigen::VectorXi timestamps = final_indiv->getTimestamps();
+                        Eigen::MatrixXd N;
+                        igl::per_face_normals(V, F, N);
+                        if (flip_label_normals) N = -N;
+                        double l_avg = igl::avg_edge_length(V, F);
+                        for (int i=0; i<F.rows(); i++){
+                            Eigen::RowVector3d p = (V.row(F(i,0)) + V.row(F(i,1)) + V.row(F(i,2)))/3.0;
+                            p -= N.row(i) * l_avg / 3.0;
+                            viewer.data(orig_id).add_label(p, std::to_string(timestamps(i)));
+                        }
+                    }
+
+                    ImGui::Checkbox("Flip label normals", &flip_label_normals);
+
+
+                    if (ImGui::Button("Quick save labeling", ImVec2(-1, 0))){
+                        std::string folder = input_tris.substr(0, input_tris.find_last_of("/\\") + 1);
+                        folder = folder.substr(0, folder.find_last_of("/\\") + 1);
+                        Eigen::VectorXi save_labeling = final_indiv->getLabeling();
+                        saveFlagging(folder + "/labeling.txt", save_labeling);
+                        saveFlaggingOnTets(folder + "/labeling_on_tets.txt", folder + "/tris_to_tets.txt", save_labeling);
+                    }
+                    
+                    if (ImGui::Button("Quick hexex")){
+                        std::string folder = input_tris.substr(0, input_tris.find_last_of("/\\") + 1);
+                        std::string tet = folder + "/tetra.mesh";
+                        std::string label_tet = folder + "/labeling_on_tets.txt";
+                        std::string hexes = folder + "/hexes.mesh";
+                        double scale = 1.4;
+                        std::string command = "./polycube_withHexEx  " + tet + " " + label_tet + " " + hexes + " 1.4";
+                        std::cout << "Running command: " << command << std::endl;
+                        int result_command = system(command.c_str());
                     }
                 }
-
-                ImGui::Checkbox("Flip label normals", &flip_label_normals);
-
-                ImGui::Separator();
-
-                if (ImGui::Button("Quick save labeling", ImVec2(-1, 0))){
-                    std::string folder = input_tris.substr(0, input_tris.find_last_of("/\\") + 1);
-                    folder = folder.substr(0, folder.find_last_of("/\\") + 1);
-                    Eigen::VectorXi save_labeling = final_indiv->getLabeling();
-                    saveFlagging(folder + "/labeling.txt", save_labeling);
-                    saveFlaggingOnTets(folder + "/labeling_on_tets.txt", folder + "/tris_to_tets.txt", save_labeling);
-                }
-                
-                if (ImGui::Button("Quick hexex")){
-                    std::string folder = input_tris.substr(0, input_tris.find_last_of("/\\") + 1);
-                    std::string tet = folder + "/tetra.mesh";
-                    std::string label_tet = folder + "/labeling_on_tets.txt";
-                    std::string hexes = folder + "/hexes.mesh";
-                    double scale = 1.4;
-                    std::string command = "./polycube_withHexEx  " + tet + " " + label_tet + " " + hexes + " 1.4";
-                    std::cout << "Running command: " << command << std::endl;
-                    int result_command = system(command.c_str());
-                }
-
-                make_checkbox("Show mesh", viewer.data(orig_id).show_lines);
                 ImGui::End();
             }
         };
