@@ -31,7 +31,7 @@ Evocube converges to valid labelings on a wide range of shapes. The limitations 
 
 ### Download
 ```
-git clone https://github.com/[path/to/repository]
+git clone https://github.com/LIHPC-Computational-Geometry/evocube.git
 git submodule update --init --recursive
 ```
 
