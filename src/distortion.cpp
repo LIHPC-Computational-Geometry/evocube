@@ -67,7 +67,7 @@ void computeDisto(const Eigen::MatrixXd& V1,
 
 #pragma omp parallel for
     for (int f_id = 0; f_id < F.rows(); f_id++){
-        Eigen::JacobiSVD<Eigen::Matrix2d> svd(jacobians[f_id], Eigen::ComputeThinU | Eigen::ComputeThinV);
+        Eigen::JacobiSVD<Eigen::Matrix2d, Eigen::ComputeThinU | Eigen::ComputeThinV> svd(jacobians[f_id]);
         double s1 = svd.singularValues()(0);
         double s2 = svd.singularValues()(1);
         disto(f_id) =  s1 * s2 + 1.0 / (s1 * s2) - 2.0; // area

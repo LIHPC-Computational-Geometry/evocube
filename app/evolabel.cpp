@@ -328,6 +328,7 @@ int main(int argc, char *argv[]){
 
         std::shared_ptr<LabelingIndividual> best_indiv = final_indiv; 
         std::shared_ptr<LabelingIndividual> displayed_indiv = best_indiv;
+        std::shared_ptr<LabelingIndividual> init_indiv = std::make_shared<LabelingIndividual>(LabelingIndividual(evo, qle, labeling_init));
 
         igl::opengl::glfw::imgui::ImGuiMenu menu;
         menu.callback_draw_viewer_window = []() {};
@@ -369,7 +370,7 @@ int main(int argc, char *argv[]){
             if (ImGui::Begin("IGL")) {
                 if (ImGui::Button("Init labeling", ImVec2(-1, 0))){
                     show_indiv = true;
-                    displayed_indiv = ancestor;
+                    displayed_indiv = init_indiv;
                     viewer.data(orig_id).set_mesh(V, F);
                     //Eigen::MatrixXd colors = colorsFromFlagging(labeling_init);
                     //viewer.data(orig_id).set_colors(colors);
@@ -388,6 +389,12 @@ int main(int argc, char *argv[]){
                     updateViz();
                 }
 
+                if (ImGui::Button("Save displayed labeling", ImVec2(-1, 0))){
+                    std::string folder = igl::file_dialog_save();
+                    Eigen::VectorXi save_labeling = displayed_indiv->getLabeling();
+                    saveFlagging(folder, save_labeling);
+                }
+
                 ImGui::Separator();
                 
                 make_checkbox("Show mesh", viewer.data(orig_id).show_lines);
@@ -398,7 +405,7 @@ int main(int argc, char *argv[]){
                         viewer.data(orig_id).set_colors(threshold_colors);
                     }
 
-                    if (ImGui::Button("Save labeling to folder", ImVec2(-1, 0))){
+                    if (ImGui::Button("Quick save volume labeling", ImVec2(-1, 0))){
                         std::string folder = igl::file_dialog_save();
                         folder = folder.substr(0, folder.find_last_of("/\\") + 1);
                         Eigen::VectorXi save_labeling = final_indiv->getLabeling();

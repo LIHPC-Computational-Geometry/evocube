@@ -145,6 +145,12 @@ std::vector<int> graphcutTurningPoints(const std::vector<int>& bnd, const Eigen:
     int num_elem = bnd.size() - 1;
     int num_labels = 2;
 
+    if(num_elem==1) {
+        //boundary of 1 edge only. no turning-point.
+        std::vector<int> empty;
+        return empty;
+    }
+
 	// unary costs
 	int *data = new int[num_elem*num_labels];
     Eigen::RowVector3d dir = desired_dir;
