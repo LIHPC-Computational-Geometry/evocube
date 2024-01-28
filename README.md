@@ -10,7 +10,7 @@
 <br/>
 <br/>
 
-Feel free to [reach out](https://corentindumery.github.io) if you have questions or suggestions :)
+Watch the video presentation on the [project page](https://corentindumery.github.io/projects/evocube.html).
 
 ![alt text](images/lowres_evocube_teaser.png)
 
@@ -67,6 +67,22 @@ To go further, advanced tools used in our paper are showcased in `init_from_fold
 * [Simpler hex-meshing pipeline with libHexEx](https://github.com/fprotais/polycube_withHexEx)
 * [Tet mesh preprocessing](https://github.com/fprotais/preprocess_polycube)
  
+## Citation
+```
+@article{dumery:evocube,
+   title = {{Evocube: a Genetic Labeling Framework for Polycube-Maps}},
+   author = {Dumery, Corentin and Protais, Fran{\c c}ois and Mestrallet, S{\'e}bastien and Bourcier, Christophe and Ledoux, Franck},
+   url = {https://doi.org/10.1111/cgf.14649},
+   journal = {{Computer Graphics Forum}},
+   publisher = {{Wiley}},
+   year = {2022},
+   month = Aug,
+   doi = {10.1111/cgf.14649},
+   volume = {41},
+   number = {6},
+   pages = {467--479},
+} 
+```
 ## License
 [GPL3](LICENSE) license
 ([FAQ](https://www.gnu.org/licenses/gpl-faq.html))
